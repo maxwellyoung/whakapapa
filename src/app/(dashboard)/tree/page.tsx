@@ -77,12 +77,15 @@ export default function TreePage() {
             person,
           },
           style: {
-            background: '#fff',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px',
-            padding: '10px 20px',
+            background: '#fafaf9',
+            border: '1px solid #e7e5e4',
+            borderRadius: '12px',
+            padding: '12px 20px',
             fontSize: '14px',
+            fontWeight: 500,
+            color: '#1c1917',
             cursor: 'pointer',
+            boxShadow: '0 1px 2px rgba(28, 25, 23, 0.04)',
           },
         }))
 
@@ -124,7 +127,10 @@ export default function TreePage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
+          <span className="text-sm text-stone-400 dark:text-stone-500">Loading tree...</span>
+        </div>
       </div>
     )
   }
@@ -132,7 +138,7 @@ export default function TreePage() {
   if (!currentWorkspace) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Select a workspace</p>
+        <p className="text-stone-400 dark:text-stone-500">Select a workspace</p>
       </div>
     )
   }
@@ -140,9 +146,15 @@ export default function TreePage() {
   if (nodes.length === 0) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <p className="text-muted-foreground mb-4">
-            Add some people to see the family tree
+        <div className="text-center max-w-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800">
+            <svg className="h-6 w-6 text-stone-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M12 2v6m0 0l4-4m-4 4l-4-4M12 22V12M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6M5 12l7-7 7 7" />
+            </svg>
+          </div>
+          <p className="text-stone-600 dark:text-stone-400 mb-2">No family tree yet</p>
+          <p className="text-sm text-stone-400 dark:text-stone-500">
+            Add people and create relationships to see your family tree visualization
           </p>
         </div>
       </div>

@@ -28,13 +28,13 @@ function getActionLabel(action: string): string {
 function getActionColor(action: string): string {
   switch (action) {
     case 'create':
-      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+      return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
     case 'update':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+      return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
     case 'delete':
-      return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+      return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
     default:
-      return 'bg-neutral-100 text-neutral-800 dark:bg-neutral-900 dark:text-neutral-300'
+      return 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300'
   }
 }
 
@@ -69,7 +69,10 @@ export default function ActivityPage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
+          <span className="text-sm text-stone-400 dark:text-stone-500">Loading...</span>
+        </div>
       </div>
     )
   }
@@ -77,21 +80,21 @@ export default function ActivityPage() {
   if (!currentWorkspace) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Select a workspace</p>
+        <p className="text-stone-400 dark:text-stone-500">Select a workspace</p>
       </div>
     )
   }
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Activity</h1>
-        <p className="text-muted-foreground">Recent changes to your family tree</p>
+    <div className="p-6 md:p-8">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">Activity</h1>
+        <p className="mt-1 text-stone-500 dark:text-stone-400">Recent changes to your family tree</p>
       </div>
 
       {activities.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center">
-          <p className="text-muted-foreground">No activity yet</p>
+        <div className="rounded-2xl border border-stone-200/60 bg-white p-8 text-center shadow-sm dark:border-stone-800/60 dark:bg-stone-900">
+          <p className="text-stone-400 dark:text-stone-500">No activity yet</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -118,15 +121,15 @@ export default function ActivityPage() {
                     <AvatarFallback className="text-xs">{initials}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="text-sm">
-                      <span className="font-medium">{userName}</span>{' '}
+                    <p className="text-sm text-stone-700 dark:text-stone-300">
+                      <span className="font-medium text-stone-900 dark:text-stone-100">{userName}</span>{' '}
                       <Badge variant="outline" className={getActionColor(activity.action)}>
                         {getActionLabel(activity.action)}
                       </Badge>{' '}
-                      <span className="text-muted-foreground">{activity.entity_type}</span>{' '}
-                      <span className="font-medium">{String(entityName)}</span>
+                      <span className="text-stone-500 dark:text-stone-400">{activity.entity_type}</span>{' '}
+                      <span className="font-medium text-stone-900 dark:text-stone-100">{String(entityName)}</span>
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-stone-400 dark:text-stone-500">
                       {new Date(activity.created_at).toLocaleString()}
                     </p>
                   </div>
