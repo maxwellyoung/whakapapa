@@ -148,7 +148,10 @@ export default function SuggestionsPage() {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
+          <span className="text-sm text-stone-400 dark:text-stone-500">Loading...</span>
+        </div>
       </div>
     )
   }
@@ -156,30 +159,35 @@ export default function SuggestionsPage() {
   if (!currentWorkspace) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Select a workspace</p>
+        <p className="text-stone-400 dark:text-stone-500">Select a workspace</p>
       </div>
     )
   }
 
   return (
-    <div className="p-8">
+    <div className="p-6 md:p-8">
       <div className="mx-auto max-w-3xl">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold">Suggestions</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+            Suggestions
+          </h1>
+          <p className="mt-1 text-stone-500 dark:text-stone-400">
             Review AI-extracted and user-proposed changes
           </p>
         </div>
 
         {suggestions.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <HelpCircle className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-              <p className="text-muted-foreground">
-                No pending suggestions. Upload documents to extract family data automatically.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-stone-200/60 bg-white p-8 text-center shadow-sm dark:border-stone-800/60 dark:bg-stone-900">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800">
+              <HelpCircle className="h-6 w-6 text-stone-400 dark:text-stone-500" />
+            </div>
+            <p className="text-stone-600 dark:text-stone-400 mb-4">
+              No pending suggestions
+            </p>
+            <p className="text-sm text-stone-400 dark:text-stone-500">
+              Use Quick Capture on the dashboard to extract family data from documents automatically.
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
             {suggestions.map((suggestion) => {
