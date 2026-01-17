@@ -19,7 +19,7 @@ export default function LoginPage() {
 
     const supabase = createClient()
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim()
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
