@@ -1,21 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2, Camera } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { formatFlexibleDate } from '@/lib/dates'
 import { canEdit, canDelete } from '@/lib/permissions'
 import { RelationshipList } from '@/components/people/relationship-list'
-import { CitationManager } from '@/components/people/citation-manager'
+import { PersonAttachments } from '@/components/people/person-attachments'
 import { VisibilityControl } from '@/components/people/visibility-control'
+import { toast } from 'sonner'
 import type { Person, Relationship } from '@/types'
 
 function getInitials(name: string): string {
@@ -35,6 +35,8 @@ export default function PersonDetailPage() {
   const [person, setPerson] = useState<Person | null>(null)
   const [relationships, setRelationships] = useState<(Relationship & { person: Person })[]>([])
   const [loading, setLoading] = useState(true)
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     async function fetchPerson() {
@@ -52,6 +54,7 @@ export default function PersonDetailPage() {
 
       if (personData) {
         setPerson(personData)
+        setPhotoUrl(personData.photo_url)
 
         // Fetch relationships where this person is either person_a or person_b
         const { data: relA } = await supabase
@@ -118,18 +121,82 @@ export default function PersonDetailPage() {
   const canUserEdit = userRole && canEdit(userRole)
   const canUserDelete = userRole && canDelete(userRole)
 
+  const handleQuickPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !currentWorkspace) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      return
+    }
+
+    try {
+      const supabase = createClient()
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
+      const filePath = `${currentWorkspace.id}/${crypto.randomUUID()}.${fileExt}`
+
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('sources')
+        .upload(filePath, file, { cacheControl: '3600' })
+
+      if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data: urlData } = supabase.storage.from('sources').getPublicUrl(filePath)
+
+      // Update person's photo_url
+      const { error: updateError } = await supabase
+        .from('people')
+        .update({ photo_url: urlData.publicUrl })
+        .eq('id', personId)
+
+      if (updateError) throw updateError
+
+      setPhotoUrl(urlData.publicUrl)
+      toast.success('Profile photo updated')
+    } catch (error) {
+      console.error('Upload error:', error)
+      toast.error("Couldn't upload photo. Please try again.")
+    }
+
+    // Reset input
+    if (photoInputRef.current) {
+      photoInputRef.current.value = ''
+    }
+  }
+
   return (
     <div className="p-8">
       <div className="mx-auto max-w-4xl">
         {/* Header */}
         <div className="mb-6 flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={person.photo_url ?? undefined} alt={person.preferred_name} />
-              <AvatarFallback className="text-2xl">
-                {getInitials(person.preferred_name)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative group">
+              <Avatar className="h-20 w-20">
+                <AvatarImage src={photoUrl ?? undefined} alt={person.preferred_name} />
+                <AvatarFallback className="text-2xl">
+                  {getInitials(person.preferred_name)}
+                </AvatarFallback>
+              </Avatar>
+              {canUserEdit && (
+                <>
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleQuickPhotoUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => photoInputRef.current?.click()}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Camera className="h-6 w-6 text-white" />
+                  </button>
+                </>
+              )}
+            </div>
             <div>
               <h1 className="text-2xl font-bold">{person.preferred_name}</h1>
               {(person.given_names || person.family_name) && (
@@ -226,15 +293,15 @@ export default function PersonDetailPage() {
           </Card>
         )}
 
-        {/* Citations */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Sources</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <CitationManager entityType="person" entityId={person.id} />
-          </CardContent>
-        </Card>
+        {/* Photos & Documents */}
+        <div className="mt-6">
+          <PersonAttachments
+            personId={person.id}
+            personName={person.preferred_name}
+            currentPhotoUrl={photoUrl}
+            onPhotoChange={setPhotoUrl}
+          />
+        </div>
 
         {/* Metadata */}
         <div className="mt-6 text-xs text-muted-foreground">
