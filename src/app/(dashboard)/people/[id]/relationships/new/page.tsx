@@ -21,16 +21,46 @@ import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import type { Person, RelationshipType } from '@/types'
 
-const RELATIONSHIP_TYPES: { value: RelationshipType; label: string; description: string }[] = [
-  { value: 'parent_child', label: 'Parent of', description: 'This person is the parent of the other' },
-  { value: 'spouse', label: 'Married to', description: 'Husband and wife' },
-  { value: 'partner', label: 'Partner of', description: 'Unmarried life partners' },
-  { value: 'sibling', label: 'Sibling of', description: 'Brother or sister' },
-  { value: 'adoptive_parent', label: 'Adoptive parent of', description: 'Adopted this person' },
-  { value: 'step_parent', label: 'Step-parent of', description: 'Through marriage to their parent' },
-  { value: 'foster_parent', label: 'Foster parent of', description: 'Fostered this person' },
-  { value: 'guardian', label: 'Guardian of', description: 'Legal guardian' },
-  { value: 'other', label: 'Other connection', description: 'Another type of relationship' },
+// Each relationship option includes direction: 'forward' means current person is person_a, 'reverse' means swap
+interface RelationshipOption {
+  value: string // e.g., 'parent_child:forward' or 'parent_child:reverse'
+  type: RelationshipType
+  direction: 'forward' | 'reverse'
+  label: string
+  description: string
+  category: 'family' | 'partnership' | 'other'
+}
+
+const RELATIONSHIP_OPTIONS: RelationshipOption[] = [
+  // Parent/Child (bidirectional)
+  { value: 'parent_child:forward', type: 'parent_child', direction: 'forward', label: 'Parent of', description: 'This person is the parent', category: 'family' },
+  { value: 'parent_child:reverse', type: 'parent_child', direction: 'reverse', label: 'Child of', description: 'This person is the child', category: 'family' },
+
+  // Sibling (symmetric)
+  { value: 'sibling:forward', type: 'sibling', direction: 'forward', label: 'Sibling of', description: 'Brother or sister', category: 'family' },
+
+  // Adoptive parent/child (bidirectional)
+  { value: 'adoptive_parent:forward', type: 'adoptive_parent', direction: 'forward', label: 'Adoptive parent of', description: 'Adopted this person', category: 'family' },
+  { value: 'adoptive_parent:reverse', type: 'adoptive_parent', direction: 'reverse', label: 'Adopted by', description: 'Was adopted by this person', category: 'family' },
+
+  // Step parent/child (bidirectional)
+  { value: 'step_parent:forward', type: 'step_parent', direction: 'forward', label: 'Step-parent of', description: 'Through marriage to their parent', category: 'family' },
+  { value: 'step_parent:reverse', type: 'step_parent', direction: 'reverse', label: 'Stepchild of', description: 'This person is their step-parent', category: 'family' },
+
+  // Foster parent/child (bidirectional)
+  { value: 'foster_parent:forward', type: 'foster_parent', direction: 'forward', label: 'Foster parent of', description: 'Fostered this person', category: 'family' },
+  { value: 'foster_parent:reverse', type: 'foster_parent', direction: 'reverse', label: 'Fostered by', description: 'Was fostered by this person', category: 'family' },
+
+  // Guardian/Ward (bidirectional)
+  { value: 'guardian:forward', type: 'guardian', direction: 'forward', label: 'Guardian of', description: 'Legal guardian', category: 'family' },
+  { value: 'guardian:reverse', type: 'guardian', direction: 'reverse', label: 'Ward of', description: 'Under their guardianship', category: 'family' },
+
+  // Partnerships (symmetric)
+  { value: 'spouse:forward', type: 'spouse', direction: 'forward', label: 'Married to', description: 'Husband and wife', category: 'partnership' },
+  { value: 'partner:forward', type: 'partner', direction: 'forward', label: 'Partner of', description: 'Unmarried life partners', category: 'partnership' },
+
+  // Other
+  { value: 'other:forward', type: 'other', direction: 'forward', label: 'Other connection', description: 'Another type of relationship', category: 'other' },
 ]
 
 function getInitials(name: string): string {
@@ -50,8 +80,11 @@ export default function NewRelationshipPage() {
 
   const [search, setSearch] = useState('')
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null)
-  const [relationshipType, setRelationshipType] = useState<RelationshipType>('parent_child')
+  const [selectedRelationship, setSelectedRelationship] = useState<string>('parent_child:reverse') // Default to "Child of" - more common use case
   const [notes, setNotes] = useState('')
+
+  // Get the selected relationship option
+  const relationshipOption = RELATIONSHIP_OPTIONS.find((o) => o.value === selectedRelationship)
 
   useEffect(() => {
     async function fetchData() {
@@ -80,20 +113,20 @@ export default function NewRelationshipPage() {
   )
 
   const handleCreate = async () => {
-    if (!currentWorkspace || !person || !selectedPerson) return
+    if (!currentWorkspace || !person || !selectedPerson || !relationshipOption) return
 
     setCreating(true)
     const supabase = createClient()
 
-    // For directional relationships (parent_child, etc.), person_a is the "from" side
-    // We're adding a relationship FROM the current person page
-    const isDirectional = ['parent_child', 'adoptive_parent', 'step_parent', 'foster_parent', 'guardian'].includes(relationshipType)
+    // For 'reverse' direction, swap person_a and person_b
+    // This ensures proper storage: parent is always person_a in parent_child relationships
+    const isReverse = relationshipOption.direction === 'reverse'
 
     const { error } = await supabase.from('relationships').insert({
       workspace_id: currentWorkspace.id,
-      person_a_id: personId,
-      person_b_id: selectedPerson.id,
-      relationship_type: relationshipType,
+      person_a_id: isReverse ? selectedPerson.id : personId,
+      person_b_id: isReverse ? personId : selectedPerson.id,
+      relationship_type: relationshipOption.type,
       notes: notes.trim() || null,
     })
 
@@ -130,9 +163,10 @@ export default function NewRelationshipPage() {
 
   // Get a friendly description of the relationship
   const getRelationshipSentence = () => {
-    const type = RELATIONSHIP_TYPES.find((t) => t.value === relationshipType)
-    if (!type || !selectedPerson) return null
-    return `${person.preferred_name} is the ${type.label.toLowerCase()} ${selectedPerson.preferred_name}`
+    if (!relationshipOption || !selectedPerson) return null
+    // The label includes "of" or "to" already, so format nicely
+    const label = relationshipOption.label.toLowerCase()
+    return `${person.preferred_name} is the ${label} ${selectedPerson.preferred_name}`
   }
 
   return (
@@ -147,22 +181,41 @@ export default function NewRelationshipPage() {
         {/* Relationship Type */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">How are they related?</CardTitle>
+            <CardTitle className="text-lg">How is {person.preferred_name} related?</CardTitle>
           </CardHeader>
           <CardContent>
             <Select
-              value={relationshipType}
-              onValueChange={(v) => setRelationshipType(v as RelationshipType)}
+              value={selectedRelationship}
+              onValueChange={setSelectedRelationship}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select relationship type" />
               </SelectTrigger>
               <SelectContent>
-                {RELATIONSHIP_TYPES.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    <div>
-                      <span className="font-medium">{type.label}</span>
-                      <p className="text-xs text-muted-foreground">{type.description}</p>
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Family</div>
+                {RELATIONSHIP_OPTIONS.filter((o) => o.category === 'family').map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-muted-foreground">{option.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Partnerships</div>
+                {RELATIONSHIP_OPTIONS.filter((o) => o.category === 'partnership').map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-muted-foreground">{option.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+                <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground mt-2">Other</div>
+                {RELATIONSHIP_OPTIONS.filter((o) => o.category === 'other').map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-muted-foreground">{option.description}</span>
                     </div>
                   </SelectItem>
                 ))}
