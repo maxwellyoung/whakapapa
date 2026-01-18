@@ -33,15 +33,17 @@ export default function LoginPage() {
       // Provide more specific error messages
       let errorText = error.message
       if (error.message.includes('rate limit')) {
-        errorText = 'Too many attempts. Please wait a few minutes before trying again.'
+        errorText = 'Too many sign-in attempts. Please wait a few minutes and try again.'
       } else if (error.message.includes('Database error')) {
-        errorText = 'Account setup error. Please try again or contact support.'
+        errorText = 'Something went wrong setting up your account. Please try again.'
+      } else if (error.message.includes('Invalid email')) {
+        errorText = 'Please check that your email address is correct.'
       }
       setMessage({ type: 'error', text: errorText })
     } else {
       setMessage({
         type: 'success',
-        text: 'Check your email for the login link.',
+        text: "We've sent you a sign-in link. Check your inbox (and spam folder) for an email from us.",
       })
     }
   }
@@ -51,13 +53,13 @@ export default function LoginPage() {
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Whakapapa</CardTitle>
         <CardDescription>
-          Enter your email to sign in or create an account
+          Your family history, preserved and connected
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Email address</Label>
             <Input
               id="email"
               type="email"
@@ -67,6 +69,9 @@ export default function LoginPage() {
               required
               disabled={loading}
             />
+            <p className="text-xs text-muted-foreground">
+              We&apos;ll email you a secure sign-in link. No password needed.
+            </p>
           </div>
 
           {message && (
@@ -82,7 +87,7 @@ export default function LoginPage() {
           )}
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Sending...' : 'Send magic link'}
+            {loading ? 'Sending...' : 'Email me a sign-in link'}
           </Button>
         </form>
       </CardContent>

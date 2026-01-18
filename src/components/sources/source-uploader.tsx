@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Progress } from '@/components/ui/progress'
 import { toast } from 'sonner'
+import { getErrorToast } from '@/lib/errors'
 import type { SourceType } from '@/types'
 
 interface SourceUploaderProps {
@@ -107,11 +108,11 @@ export function SourceUploader({ onComplete, onCancel }: SourceUploaderProps) {
       if (dbError) throw dbError
 
       setProgress(100)
-      toast.success('File uploaded')
+      toast.success(`"${title.trim()}" has been added to your sources`)
       onComplete({ id: source.id, title: source.title })
     } catch (error) {
       console.error('Upload error:', error)
-      toast.error('Upload failed')
+      toast.error(getErrorToast('upload_file'))
     } finally {
       setUploading(false)
     }

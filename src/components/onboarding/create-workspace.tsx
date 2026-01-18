@@ -39,7 +39,14 @@ export function CreateWorkspace() {
     })
 
     if (error) {
-      toast.error(error.message)
+      // Provide friendly error messages
+      let errorText = "We couldn't create your family tree. Please try again."
+      if (error.message.includes('duplicate')) {
+        errorText = 'A workspace with this name already exists. Please try a different name.'
+      } else if (error.message.includes('permission')) {
+        errorText = "You don't have permission to create a workspace. Please sign in again."
+      }
+      toast.error(errorText)
       setCreating(false)
       return
     }

@@ -27,6 +27,8 @@ import {
 } from '@/components/ui/select'
 import { toast } from 'sonner'
 import { AIIngest } from '@/components/sources/ai-ingest'
+import { SourceUploader } from '@/components/sources/source-uploader'
+import { getErrorToast } from '@/lib/errors'
 import type { Source, SourceType } from '@/types'
 
 const SOURCE_ICONS: Record<SourceType, React.ComponentType<{ className?: string }>> = {
@@ -96,17 +98,18 @@ export default function SourcesPage() {
     setCreating(false)
 
     if (error) {
-      toast.error('Failed to create source')
+      toast.error(getErrorToast('create_source'))
       return
     }
 
     setSources((prev) => [data, ...prev])
     setDialogOpen(false)
+    const savedTitle = title
     setTitle('')
     setDescription('')
     setUrl('')
     setContent('')
-    toast.success('Source created')
+    toast.success(`"${savedTitle}" has been added to your sources`)
   }
 
   if (loading) {
@@ -211,19 +214,41 @@ export default function SourcesPage() {
                 </div>
               )}
               {['document', 'photo', 'audio', 'video'].includes(sourceType) && (
-                <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-                  File upload coming soon. For now, add as URL or note.
-                </div>
+                <SourceUploader
+                  onComplete={(source) => {
+                    // Refresh sources list
+                    const supabase = createClient()
+                    supabase
+                      .from('sources')
+                      .select('*')
+                      .eq('id', source.id)
+                      .single()
+                      .then(({ data }) => {
+                        if (data) {
+                          setSources((prev) => [data, ...prev])
+                        }
+                      })
+                    setDialogOpen(false)
+                    setSourceType('note')
+                  }}
+                  onCancel={() => {
+                    setDialogOpen(false)
+                    setSourceType('note')
+                  }}
+                />
               )}
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreate} disabled={creating || !title.trim()}>
-                {creating ? 'Creating...' : 'Create'}
-              </Button>
-            </DialogFooter>
+            {/* Only show footer for note/URL - file uploads have their own buttons */}
+            {!['document', 'photo', 'audio', 'video'].includes(sourceType) && (
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleCreate} disabled={creating || !title.trim()}>
+                  {creating ? 'Creating...' : 'Create'}
+                </Button>
+              </DialogFooter>
+            )}
           </DialogContent>
           </Dialog>
         </div>

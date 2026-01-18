@@ -121,13 +121,13 @@ export function VisibilityControl({ entityType, entityId }: VisibilityControlPro
     setSaving(false)
 
     if (error) {
-      toast.error('Failed to update visibility')
+      toast.error("We couldn't update the privacy settings. Please try again.")
       return
     }
 
     setVisibility(data)
     setDialogOpen(false)
-    toast.success('Visibility updated')
+    toast.success('Privacy settings saved')
   }
 
   const getVisibilityIcon = () => {

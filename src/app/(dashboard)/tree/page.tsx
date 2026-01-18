@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import {
   ReactFlow,
   Node,
@@ -15,6 +16,7 @@ import 'reactflow/dist/style.css'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 import type { Person, Relationship } from '@/types'
 
 interface PersonNode extends Node {
@@ -152,17 +154,25 @@ export default function TreePage() {
               <path d="M12 2v6m0 0l4-4m-4 4l-4-4M12 22V12M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6M5 12l7-7 7 7" />
             </svg>
           </div>
-          <p className="text-stone-600 dark:text-stone-400 mb-2">No family tree yet</p>
-          <p className="text-sm text-stone-400 dark:text-stone-500">
-            Add people and create relationships to see your family tree visualization
+          <p className="text-stone-600 dark:text-stone-400 mb-2 font-medium">Your family tree will appear here</p>
+          <p className="text-sm text-stone-400 dark:text-stone-500 mb-6">
+            Once you add people and connect them as family members, you&apos;ll see them displayed as an interactive tree.
           </p>
+          <div className="flex flex-col gap-2">
+            <Link href="/people/new">
+              <Button className="w-full">Add someone to get started</Button>
+            </Link>
+            <Link href="/people">
+              <Button variant="outline" className="w-full">View people list</Button>
+            </Link>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="h-full">
+    <div className="h-full relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -170,11 +180,31 @@ export default function TreePage() {
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
         fitView
-        attributionPosition="bottom-left"
+        proOptions={{ hideAttribution: true }}
       >
         <Controls />
         <Background />
       </ReactFlow>
+
+      {/* Relationship Legend */}
+      <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm rounded-lg border border-stone-200 dark:border-stone-700 p-3 text-xs">
+        <p className="font-medium text-stone-700 dark:text-stone-300 mb-2">Relationship Lines</p>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-0.5 bg-blue-500 rounded" />
+            <span className="text-stone-600 dark:text-stone-400">Parent → Child</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-0.5 bg-pink-500 rounded" />
+            <span className="text-stone-600 dark:text-stone-400">Married / Partner</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-0.5 bg-green-500 rounded" />
+            <span className="text-stone-600 dark:text-stone-400">Siblings</span>
+          </div>
+        </div>
+        <p className="text-stone-400 dark:text-stone-500 mt-2">Click a person to view details</p>
+      </div>
     </div>
   )
 }

@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
+import { getErrorToast } from '@/lib/errors'
 import Link from 'next/link'
 
 interface ExtractedPerson {
@@ -77,7 +78,7 @@ export function QuickCapture() {
     }
     // For images, we'd do OCR (placeholder for now)
     else if (file.type.startsWith('image/')) {
-      toast.info('Image uploaded - OCR coming soon. For now, paste the text manually.')
+      toast.info('Image uploaded. Reading text from images is coming soon - for now, please type or paste the text.')
     }
   }
 
@@ -115,7 +116,7 @@ export function QuickCapture() {
       }
     } catch (error) {
       console.error('Extract error:', error)
-      toast.error('Failed to process text')
+      toast.error(getErrorToast('process_text'))
     } finally {
       setIsProcessing(false)
     }
@@ -238,12 +239,12 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
                 {isProcessing ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Extracting...
+                    Reading...
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Extract with AI
+                    Find people &amp; dates
                   </>
                 )}
               </Button>
@@ -304,7 +305,11 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
                         </div>
                       </div>
                       <div className="text-xs text-stone-400">
-                        {(person.confidence * 100).toFixed(0)}%
+                        {person.confidence >= 0.8
+                          ? 'High'
+                          : person.confidence >= 0.5
+                          ? 'Medium'
+                          : 'Low'}
                       </div>
                     </div>
                   ))}

@@ -144,19 +144,6 @@ export function PersonForm({ initialData, onSubmit, onSelectExisting }: PersonFo
         </CardContent>
       </Card>
 
-      {isNew && preferredName.length >= 3 && (
-        <DuplicateWarning
-          personData={{
-            preferred_name: preferredName,
-            given_names: givenNames,
-            family_name: familyName,
-            birth_date: birthDateInput,
-            birth_place: birthPlace,
-          }}
-          onSelectExisting={onSelectExisting}
-        />
-      )}
-
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Birth</CardTitle>
@@ -301,15 +288,35 @@ export function PersonForm({ initialData, onSubmit, onSelectExisting }: PersonFo
         </CardContent>
       </Card>
 
-      <Separator />
+      {/* Duplicate warning shown after form is complete, before submit */}
+      {isNew && preferredName.length >= 3 && (
+        <DuplicateWarning
+          personData={{
+            preferred_name: preferredName,
+            given_names: givenNames,
+            family_name: familyName,
+            birth_date: birthDateInput,
+            birth_place: birthPlace,
+          }}
+          onSelectExisting={onSelectExisting}
+        />
+      )}
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={loading || !preferredName.trim()}>
-          {loading ? 'Saving...' : initialData ? 'Save changes' : 'Add person'}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
+      {/* Sticky footer ensures submit button is always visible */}
+      <div className="sticky bottom-0 bg-background pt-4 pb-6 -mx-8 px-8 border-t mt-6">
+        <div className="flex gap-3">
+          <Button type="submit" disabled={loading || !preferredName.trim()} size="lg">
+            {loading ? 'Saving...' : initialData ? 'Save changes' : 'Add person'}
+          </Button>
+          <Button type="button" variant="outline" size="lg" onClick={() => router.back()}>
+            Cancel
+          </Button>
+        </div>
+        {!preferredName.trim() && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Enter a preferred name above to save this person
+          </p>
+        )}
       </div>
     </form>
   )

@@ -22,15 +22,15 @@ import { Search } from 'lucide-react'
 import type { Person, RelationshipType } from '@/types'
 
 const RELATIONSHIP_TYPES: { value: RelationshipType; label: string; description: string }[] = [
-  { value: 'parent_child', label: 'Parent → Child', description: 'This person is the parent' },
-  { value: 'spouse', label: 'Spouse', description: 'Married partners' },
-  { value: 'partner', label: 'Partner', description: 'Unmarried partners' },
-  { value: 'sibling', label: 'Sibling', description: 'Brothers/sisters' },
-  { value: 'adoptive_parent', label: 'Adoptive Parent → Child', description: 'Adoption relationship' },
-  { value: 'step_parent', label: 'Step-Parent → Child', description: 'Step-parent relationship' },
-  { value: 'foster_parent', label: 'Foster Parent → Child', description: 'Foster relationship' },
-  { value: 'guardian', label: 'Guardian → Ward', description: 'Legal guardian' },
-  { value: 'other', label: 'Other', description: 'Custom relationship' },
+  { value: 'parent_child', label: 'Parent of', description: 'This person is the parent of the other' },
+  { value: 'spouse', label: 'Married to', description: 'Husband and wife' },
+  { value: 'partner', label: 'Partner of', description: 'Unmarried life partners' },
+  { value: 'sibling', label: 'Sibling of', description: 'Brother or sister' },
+  { value: 'adoptive_parent', label: 'Adoptive parent of', description: 'Adopted this person' },
+  { value: 'step_parent', label: 'Step-parent of', description: 'Through marriage to their parent' },
+  { value: 'foster_parent', label: 'Foster parent of', description: 'Fostered this person' },
+  { value: 'guardian', label: 'Guardian of', description: 'Legal guardian' },
+  { value: 'other', label: 'Other connection', description: 'Another type of relationship' },
 ]
 
 function getInitials(name: string): string {
@@ -101,14 +101,14 @@ export default function NewRelationshipPage() {
 
     if (error) {
       if (error.code === '23505') {
-        toast.error('This relationship already exists')
+        toast.error('These two people are already connected. Check their profiles to see the existing relationship.')
       } else {
-        toast.error('Failed to create relationship')
+        toast.error("We couldn't save this relationship. Please try again.")
       }
       return
     }
 
-    toast.success('Relationship created')
+    toast.success(`Connected ${person.preferred_name} and ${selectedPerson.preferred_name}`)
     router.push(`/people/${personId}`)
   }
 
@@ -128,18 +128,26 @@ export default function NewRelationshipPage() {
     )
   }
 
+  // Get a friendly description of the relationship
+  const getRelationshipSentence = () => {
+    const type = RELATIONSHIP_TYPES.find((t) => t.value === relationshipType)
+    if (!type || !selectedPerson) return null
+    return `${person.preferred_name} is the ${type.label.toLowerCase()} ${selectedPerson.preferred_name}`
+  }
+
   return (
     <div className="mx-auto max-w-2xl p-8">
-      <h1 className="mb-6 text-2xl font-bold">Add Relationship</h1>
+      <h1 className="mb-2 text-2xl font-bold">Connect Family Members</h1>
       <p className="mb-6 text-muted-foreground">
-        Adding a relationship for <strong>{person.preferred_name}</strong>
+        Add a family connection for <strong>{person.preferred_name}</strong>.
+        This helps build your family tree.
       </p>
 
       <div className="space-y-6">
         {/* Relationship Type */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Relationship Type</CardTitle>
+            <CardTitle className="text-lg">How are they related?</CardTitle>
           </CardHeader>
           <CardContent>
             <Select
@@ -166,13 +174,13 @@ export default function NewRelationshipPage() {
         {/* Select Person */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Related Person</CardTitle>
+            <CardTitle className="text-lg">Who is {person.preferred_name} related to?</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search people..."
+                placeholder="Search by name..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -200,9 +208,25 @@ export default function NewRelationshipPage() {
             {!selectedPerson && (
               <div className="max-h-64 overflow-auto space-y-1">
                 {filteredPeople.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-4 text-center">
-                    {people.length === 0 ? 'No other people in workspace' : 'No results'}
-                  </p>
+                  <div className="py-6 text-center">
+                    {people.length === 0 ? (
+                      <>
+                        <p className="text-sm font-medium text-stone-600 dark:text-stone-400 mb-2">
+                          No one else to connect to yet
+                        </p>
+                        <p className="text-xs text-muted-foreground mb-4">
+                          Add more people to your family tree first, then come back here to connect them.
+                        </p>
+                        <Button variant="outline" size="sm" onClick={() => router.push('/people/new')}>
+                          Add another person
+                        </Button>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        No one matches &quot;{search}&quot;. Try a different name.
+                      </p>
+                    )}
+                  </div>
                 ) : (
                   filteredPeople.map((p) => (
                     <button
@@ -228,14 +252,23 @@ export default function NewRelationshipPage() {
           </CardContent>
         </Card>
 
+        {/* Relationship Preview */}
+        {selectedPerson && (
+          <div className="rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4">
+            <p className="text-sm text-green-800 dark:text-green-200">
+              <strong>Preview:</strong> {getRelationshipSentence()}
+            </p>
+          </div>
+        )}
+
         {/* Notes */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Notes</CardTitle>
+            <CardTitle className="text-lg">Additional details (optional)</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea
-              placeholder="Optional notes about this relationship..."
+              placeholder="Any notes about this relationship, like wedding date or how you know this..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -245,10 +278,10 @@ export default function NewRelationshipPage() {
 
         {/* Actions */}
         <div className="flex gap-3">
-          <Button onClick={handleCreate} disabled={creating || !selectedPerson}>
-            {creating ? 'Creating...' : 'Add Relationship'}
+          <Button onClick={handleCreate} disabled={creating || !selectedPerson} size="lg">
+            {creating ? 'Saving...' : 'Save connection'}
           </Button>
-          <Button variant="outline" onClick={() => router.back()}>
+          <Button variant="outline" size="lg" onClick={() => router.back()}>
             Cancel
           </Button>
         </div>

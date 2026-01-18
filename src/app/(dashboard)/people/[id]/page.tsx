@@ -88,7 +88,17 @@ export default function PersonDetailPage() {
   if (!person) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">Person not found</p>
+        <div className="text-center max-w-sm">
+          <p className="text-lg font-medium text-stone-700 dark:text-stone-300 mb-2">
+            We couldn&apos;t find this person
+          </p>
+          <p className="text-sm text-muted-foreground mb-4">
+            They may have been removed, or you might not have permission to view them.
+          </p>
+          <Link href="/people">
+            <Button variant="outline">Go back to people list</Button>
+          </Link>
+        </div>
       </div>
     )
   }
@@ -152,10 +162,10 @@ export default function PersonDetailPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Vital information */}
+          {/* Life details */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Vital Information</CardTitle>
+              <CardTitle className="text-lg">Life Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>

@@ -71,14 +71,29 @@ export default function DashboardPage() {
             <CardTitle>Welcome to Whakapapa</CardTitle>
             <CardDescription>
               {workspaces.length === 0
-                ? 'Create your first workspace to start building your family tree.'
-                : 'Select a workspace to get started.'}
+                ? 'Create your first family tree to get started.'
+                : 'Choose a family tree to continue.'}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <p className="text-sm text-stone-500 dark:text-stone-400">
-              Use the workspace switcher in the sidebar to create or select a workspace.
+              {workspaces.length === 0
+                ? "Click the menu icon (☰) in the top-left corner, then select \"Create workspace\" to begin your family history."
+                : "Click the menu icon (☰) in the top-left corner to see your family trees and select one."}
             </p>
+            {workspaces.length > 0 && (
+              <div className="rounded-lg bg-stone-50 dark:bg-stone-800/50 p-3">
+                <p className="text-xs font-medium text-stone-600 dark:text-stone-400 mb-2">Your family trees:</p>
+                <ul className="text-sm text-stone-700 dark:text-stone-300 space-y-1">
+                  {workspaces.slice(0, 3).map((ws) => (
+                    <li key={ws.id}>• {ws.name}</li>
+                  ))}
+                  {workspaces.length > 3 && (
+                    <li className="text-stone-400">and {workspaces.length - 3} more...</li>
+                  )}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

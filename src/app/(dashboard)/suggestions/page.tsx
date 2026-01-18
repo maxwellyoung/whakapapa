@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import { canEdit } from '@/lib/permissions'
+import { getErrorToast } from '@/lib/errors'
 import type { Source } from '@/types'
 
 interface Suggestion {
@@ -110,11 +111,12 @@ export default function SuggestionsPage() {
         })
         .eq('id', suggestion.id)
 
+      const name = (suggestion.proposed_data as Record<string, string>).preferred_name || 'Person'
       setSuggestions((prev) => prev.filter((s) => s.id !== suggestion.id))
-      toast.success('Suggestion approved')
+      toast.success(`${name} has been added to your family tree`)
     } catch (error) {
       console.error('Error approving:', error)
-      toast.error('Failed to approve suggestion')
+      toast.error(getErrorToast('approve_suggestion'))
     } finally {
       setProcessing(null)
     }
@@ -137,7 +139,7 @@ export default function SuggestionsPage() {
     setProcessing(null)
 
     if (error) {
-      toast.error('Failed to reject suggestion')
+      toast.error(getErrorToast('reject_suggestion'))
       return
     }
 
@@ -206,7 +208,11 @@ export default function SuggestionsPage() {
                         )}
                         {suggestion.confidence && (
                           <Badge variant="outline">
-                            {(suggestion.confidence * 100).toFixed(0)}% confidence
+                            {suggestion.confidence >= 0.8
+                              ? 'High certainty'
+                              : suggestion.confidence >= 0.5
+                              ? 'Medium certainty'
+                              : 'Low certainty'}
                           </Badge>
                         )}
                       </div>

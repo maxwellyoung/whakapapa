@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { PersonForm } from '@/components/people/person-form'
+import { getErrorToast } from '@/lib/errors'
 import type { PersonFormData } from '@/types'
 
 export default function NewPersonPage() {
@@ -38,11 +39,11 @@ export default function NewPersonPage() {
       .single()
 
     if (error) {
-      toast.error('Failed to create person')
+      toast.error(getErrorToast('create_person'))
       return
     }
 
-    toast.success('Person created')
+    toast.success(`${data.preferred_name} has been added to your family tree`)
     router.push(`/people/${person.id}`)
   }
 
