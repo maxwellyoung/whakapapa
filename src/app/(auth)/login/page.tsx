@@ -30,7 +30,14 @@ export default function LoginPage() {
     setLoading(false)
 
     if (error) {
-      setMessage({ type: 'error', text: error.message })
+      // Provide more specific error messages
+      let errorText = error.message
+      if (error.message.includes('rate limit')) {
+        errorText = 'Too many attempts. Please wait a few minutes before trying again.'
+      } else if (error.message.includes('Database error')) {
+        errorText = 'Account setup error. Please try again or contact support.'
+      }
+      setMessage({ type: 'error', text: errorText })
     } else {
       setMessage({
         type: 'success',
