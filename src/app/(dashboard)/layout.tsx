@@ -1,5 +1,6 @@
 import { WorkspaceProvider } from '@/components/providers/workspace-provider'
 import { DashboardShell } from '@/components/layout/dashboard-shell'
+import { CommandMenuProvider } from '@/components/command-menu'
 
 export default function DashboardLayout({
   children,
@@ -8,7 +9,9 @@ export default function DashboardLayout({
 }) {
   return (
     <WorkspaceProvider>
-      <DashboardShell>{children}</DashboardShell>
+      <CommandMenuProvider>
+        <DashboardShell>{children}</DashboardShell>
+      </CommandMenuProvider>
     </WorkspaceProvider>
   )
 }

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vercel --version:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: Use dynamic protocol in auth callback redirect\n\nRead x-forwarded-proto header instead of hardcoding https://\nto properly handle production URL redirects.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(vercel:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfix: Use environment variable for magic link redirect URL\n\nUse NEXT_PUBLIC_APP_URL instead of window.location.origin\nto ensure magic links always point to production URL.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(grep:*)",
+      "Bash(git commit:*)",
+      "Bash(git pull:*)",
+      "Bash(npm run build:*)",
+      "Bash(npx next:*)",
+      "Bash(npx vercel --version)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
