@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { parseFlexibleDateInput, getDatePrecisionLabel } from '@/lib/dates'
 import { DuplicateWarning } from '@/components/people/duplicate-warning'
+import { PhotoUploader } from '@/components/people/photo-uploader'
 import type { PersonFormData, DatePrecision, Person } from '@/types'
 
 interface PersonFormProps {
@@ -56,6 +57,7 @@ export function PersonForm({ initialData, onSubmit, onSelectExisting }: PersonFo
   // Other fields
   const [gender, setGender] = useState(initialData?.gender ?? '')
   const [bio, setBio] = useState(initialData?.bio ?? '')
+  const [photoUrl, setPhotoUrl] = useState<string | null>(initialData?.photo_url ?? null)
 
   const handleBirthDateChange = (value: string) => {
     setBirthDateInput(value)
@@ -99,6 +101,7 @@ export function PersonForm({ initialData, onSubmit, onSelectExisting }: PersonFo
       death_place: deathPlace.trim() || undefined,
       gender: gender.trim() || undefined,
       bio: bio.trim() || undefined,
+      photo_url: photoUrl || undefined,
     })
 
     setLoading(false)
@@ -108,18 +111,27 @@ export function PersonForm({ initialData, onSubmit, onSelectExisting }: PersonFo
     <form onSubmit={handleSubmit} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Name</CardTitle>
+          <CardTitle className="text-lg">Name & Photo</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="preferredName">Preferred name *</Label>
-            <Input
-              id="preferredName"
-              placeholder="How they were known"
-              value={preferredName}
-              onChange={(e) => setPreferredName(e.target.value)}
-              required
+          <div className="flex gap-6">
+            <PhotoUploader
+              currentPhotoUrl={photoUrl}
+              onPhotoChange={setPhotoUrl}
+              personId={initialData?.id}
             />
+            <div className="flex-1 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="preferredName">Preferred name *</Label>
+                <Input
+                  id="preferredName"
+                  placeholder="How they were known"
+                  value={preferredName}
+                  onChange={(e) => setPreferredName(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">

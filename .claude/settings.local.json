@@ -13,7 +13,9 @@
       "Bash(npm run build:*)",
       "Bash(npx next:*)",
       "Bash(npx vercel --version)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

@@ -231,6 +231,7 @@ export interface PersonFormData {
   death_place?: string
   gender?: string
   bio?: string
+  photo_url?: string
 }
 
 export interface WorkspaceFormData {

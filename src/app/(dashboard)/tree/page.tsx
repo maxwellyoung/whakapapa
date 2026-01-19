@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   ReactFlow,
   Node,
   Edge,
-  Controls,
   Background,
   MiniMap,
   useNodesState,
@@ -15,6 +15,9 @@ import {
   Panel,
   useReactFlow,
   ReactFlowProvider,
+  Handle,
+  Position,
+  ConnectionLineType,
 } from 'reactflow'
 import 'reactflow/dist/style.css'
 import { createClient } from '@/lib/supabase/client'
@@ -43,47 +46,126 @@ import {
   Eye,
   Pencil,
   Users,
+  User,
 } from 'lucide-react'
 import type { Person, Relationship } from '@/types'
+import { motion, AnimatePresence } from 'framer-motion'
 
-// Custom node component with tooltip
-function PersonNode({ data }: { data: { label: string; person: Person; birthYear?: string; deathYear?: string } }) {
-  const router = useRouter()
+// Custom node component with photo and Apple-like styling
+function PersonNode({
+  data,
+  selected
+}: {
+  data: {
+    label: string
+    person: Person
+    birthYear?: string
+    deathYear?: string
+  }
+  selected?: boolean
+}) {
+  const hasPhoto = data.person.photo_url
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="px-4 py-3 bg-white dark:bg-stone-800 rounded-xl border-2 border-stone-200 dark:border-stone-700 shadow-sm hover:shadow-md hover:border-stone-300 dark:hover:border-stone-600 transition-all cursor-pointer min-w-[120px] text-center">
-            <p className="font-medium text-stone-900 dark:text-stone-100 text-sm">
-              {data.label}
-            </p>
-            {(data.birthYear || data.deathYear) && (
-              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-                {data.birthYear || '?'} – {data.deathYear || (data.person.death_date ? '?' : 'living')}
+    <>
+      <Handle
+        type="target"
+        position={Position.Top}
+        className="!w-3 !h-3 !bg-stone-300 !border-2 !border-white dark:!bg-stone-600 dark:!border-stone-800 !-top-1.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      <TooltipProvider delayDuration={300}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className={`
+                group relative px-3 py-2.5
+                bg-white/95 dark:bg-stone-900/95
+                backdrop-blur-xl
+                rounded-2xl
+                border border-stone-200/80 dark:border-stone-700/80
+                shadow-sm
+                hover:shadow-lg hover:shadow-stone-200/50 dark:hover:shadow-stone-900/50
+                hover:border-stone-300 dark:hover:border-stone-600
+                hover:-translate-y-0.5
+                transition-all duration-200 ease-out
+                cursor-pointer
+                min-w-[140px]
+                ${selected ? 'ring-2 ring-blue-500/50 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 shadow-lg shadow-blue-500/10' : ''}
+              `}
+            >
+              <div className="flex items-center gap-3">
+                {/* Profile photo or placeholder */}
+                <div className="relative flex-shrink-0">
+                  {hasPhoto ? (
+                    <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white dark:ring-stone-800 shadow-sm">
+                      <Image
+                        src={data.person.photo_url!}
+                        alt={data.label}
+                        width={40}
+                        height={40}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 flex items-center justify-center ring-2 ring-white dark:ring-stone-800 shadow-sm">
+                      <User className="w-5 h-5 text-stone-400 dark:text-stone-500" />
+                    </div>
+                  )}
+                  {/* Living indicator dot */}
+                  {!data.person.death_date && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-stone-900" />
+                  )}
+                </div>
+
+                {/* Name and dates */}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-sm truncate">
+                    {data.label}
+                  </p>
+                  {(data.birthYear || data.deathYear) && (
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
+                      {data.birthYear || '?'} – {data.deathYear || (data.person.death_date ? '?' : 'present')}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent
+            side="top"
+            className="max-w-xs bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl border-stone-200/80 dark:border-stone-700/80"
+            sideOffset={8}
+          >
+            <div className="space-y-1.5 py-1">
+              <p className="font-semibold text-stone-900 dark:text-stone-100">{data.person.preferred_name}</p>
+              {data.person.given_names && (
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  {data.person.given_names} {data.person.family_name}
+                </p>
+              )}
+              {data.person.birth_place && (
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Born in {data.person.birth_place}
+                </p>
+              )}
+              {data.person.bio && (
+                <p className="text-xs text-stone-500 dark:text-stone-400 line-clamp-2 pt-1 border-t border-stone-100 dark:border-stone-800">
+                  {data.person.bio}
+                </p>
+              )}
+              <p className="text-[10px] text-stone-400 dark:text-stone-500 pt-1">
+                Double-click to view profile
               </p>
-            )}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs">
-          <div className="space-y-1">
-            <p className="font-medium">{data.person.preferred_name}</p>
-            {data.person.given_names && (
-              <p className="text-xs text-muted-foreground">
-                Full name: {data.person.given_names} {data.person.family_name}
-              </p>
-            )}
-            {data.person.birth_place && (
-              <p className="text-xs text-muted-foreground">Born in {data.person.birth_place}</p>
-            )}
-            {data.person.bio && (
-              <p className="text-xs text-muted-foreground line-clamp-2">{data.person.bio}</p>
-            )}
-            <p className="text-xs text-stone-400 mt-1">Click to view • Right-click for options</p>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        className="!w-3 !h-3 !bg-stone-300 !border-2 !border-white dark:!bg-stone-600 dark:!border-stone-800 !-bottom-1.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+    </>
   )
 }
 
@@ -97,38 +179,36 @@ function getRelationshipColor(type: string): string {
     case 'adoptive_parent':
     case 'step_parent':
     case 'foster_parent':
-      return '#3b82f6' // blue
+    case 'guardian':
+      return '#6366f1' // indigo for family hierarchy
     case 'spouse':
     case 'partner':
-      return '#ec4899' // pink
+      return '#ec4899' // pink for partnerships
     case 'sibling':
-      return '#22c55e' // green
+      return '#10b981' // emerald for siblings
     default:
-      return '#6b7280' // gray
+      return '#94a3b8' // slate for other
   }
 }
 
-function getRelationshipLabel(type: string): string {
-  switch (type) {
-    case 'parent_child': return 'Parent'
-    case 'spouse': return 'Married'
-    case 'partner': return 'Partner'
-    case 'sibling': return 'Sibling'
-    case 'adoptive_parent': return 'Adoptive'
-    case 'step_parent': return 'Step-parent'
-    default: return ''
+// Improved tree layout with spouse grouping
+function layoutNodes(people: Person[], relationships: Relationship[]): { nodes: Node[], edges: Edge[] } {
+  if (people.length === 0) {
+    return { nodes: [], edges: [] }
   }
-}
 
-// Simple tree layout algorithm
-function layoutNodes(people: Person[], relationships: Relationship[]): Node[] {
-  // Build adjacency map
-  const parentChildMap = new Map<string, string[]>()
-  const childParentMap = new Map<string, string[]>()
-  const spouseMap = new Map<string, string[]>()
+  // Build relationship maps
+  const parentChildMap = new Map<string, string[]>() // parent -> children
+  const childParentMap = new Map<string, string[]>() // child -> parents
+  const spouseMap = new Map<string, string[]>() // person -> spouses
+  const siblingMap = new Map<string, string[]>() // person -> siblings
 
   relationships.forEach(rel => {
-    if (rel.relationship_type === 'parent_child' || rel.relationship_type.includes('parent')) {
+    if (rel.relationship_type === 'parent_child' ||
+        rel.relationship_type === 'adoptive_parent' ||
+        rel.relationship_type === 'step_parent' ||
+        rel.relationship_type === 'foster_parent' ||
+        rel.relationship_type === 'guardian') {
       // person_a is parent, person_b is child
       if (!parentChildMap.has(rel.person_a_id)) parentChildMap.set(rel.person_a_id, [])
       parentChildMap.get(rel.person_a_id)!.push(rel.person_b_id)
@@ -140,28 +220,46 @@ function layoutNodes(people: Person[], relationships: Relationship[]): Node[] {
       if (!spouseMap.has(rel.person_b_id)) spouseMap.set(rel.person_b_id, [])
       spouseMap.get(rel.person_a_id)!.push(rel.person_b_id)
       spouseMap.get(rel.person_b_id)!.push(rel.person_a_id)
+    } else if (rel.relationship_type === 'sibling') {
+      if (!siblingMap.has(rel.person_a_id)) siblingMap.set(rel.person_a_id, [])
+      if (!siblingMap.has(rel.person_b_id)) siblingMap.set(rel.person_b_id, [])
+      siblingMap.get(rel.person_a_id)!.push(rel.person_b_id)
+      siblingMap.get(rel.person_b_id)!.push(rel.person_a_id)
     }
   })
 
   // Find root nodes (people with no parents)
   const roots = people.filter(p => !childParentMap.has(p.id) || childParentMap.get(p.id)!.length === 0)
 
-  // Assign levels using BFS
+  // Group spouses together
+  const spouseGroups = new Map<string, Set<string>>() // canonical id -> all ids in group
+  const personToGroup = new Map<string, string>() // person id -> canonical group id
+
+  people.forEach(person => {
+    if (personToGroup.has(person.id)) return
+
+    const spouses = spouseMap.get(person.id) || []
+    if (spouses.length > 0) {
+      const group = new Set<string>([person.id, ...spouses])
+      spouseGroups.set(person.id, group)
+      group.forEach(id => personToGroup.set(id, person.id))
+    } else {
+      spouseGroups.set(person.id, new Set([person.id]))
+      personToGroup.set(person.id, person.id)
+    }
+  })
+
+  // Assign levels using BFS from roots
   const levels = new Map<string, number>()
   const visited = new Set<string>()
   const queue: { id: string; level: number }[] = []
 
-  // Start from roots
-  roots.forEach(root => {
-    queue.push({ id: root.id, level: 0 })
-  })
-
-  // Also handle disconnected nodes
-  people.forEach(p => {
-    if (!roots.find(r => r.id === p.id)) {
-      queue.push({ id: p.id, level: 1 })
-    }
-  })
+  // Start from roots, but if no roots exist, start from first person
+  if (roots.length > 0) {
+    roots.forEach(root => queue.push({ id: root.id, level: 0 }))
+  } else if (people.length > 0) {
+    queue.push({ id: people[0].id, level: 0 })
+  }
 
   while (queue.length > 0) {
     const { id, level } = queue.shift()!
@@ -169,7 +267,15 @@ function layoutNodes(people: Person[], relationships: Relationship[]): Node[] {
     visited.add(id)
     levels.set(id, level)
 
-    // Add children at next level
+    // Spouses get same level
+    const spouses = spouseMap.get(id) || []
+    spouses.forEach(spouseId => {
+      if (!visited.has(spouseId)) {
+        queue.unshift({ id: spouseId, level }) // Process spouse next at same level
+      }
+    })
+
+    // Children get next level
     const children = parentChildMap.get(id) || []
     children.forEach(childId => {
       if (!visited.has(childId)) {
@@ -178,48 +284,127 @@ function layoutNodes(people: Person[], relationships: Relationship[]): Node[] {
     })
   }
 
-  // Group by level
-  const levelGroups = new Map<number, Person[]>()
+  // Handle disconnected nodes
   people.forEach(p => {
-    const level = levels.get(p.id) ?? 0
-    if (!levelGroups.has(level)) levelGroups.set(level, [])
-    levelGroups.get(level)!.push(p)
+    if (!visited.has(p.id)) {
+      levels.set(p.id, 0)
+    }
   })
 
-  // Create nodes with positions
-  const NODE_WIDTH = 160
-  const NODE_HEIGHT = 80
-  const HORIZONTAL_GAP = 40
-  const VERTICAL_GAP = 100
+  // Group by level, keeping spouse groups together
+  const levelGroups = new Map<number, { group: string[], isCouple: boolean }[]>()
+  const processedGroups = new Set<string>()
 
-  const nodes: Node[] = []
+  people.forEach(p => {
+    const groupId = personToGroup.get(p.id)!
+    if (processedGroups.has(groupId)) return
+    processedGroups.add(groupId)
 
-  levelGroups.forEach((peopleInLevel, level) => {
-    const totalWidth = peopleInLevel.length * NODE_WIDTH + (peopleInLevel.length - 1) * HORIZONTAL_GAP
-    const startX = -totalWidth / 2
+    const group = spouseGroups.get(groupId)!
+    const groupArray = Array.from(group)
+    const level = levels.get(p.id) ?? 0
 
-    peopleInLevel.forEach((person, index) => {
-      const birthYear = person.birth_date?.split('-')[0]
-      const deathYear = person.death_date?.split('-')[0]
-
-      nodes.push({
-        id: person.id,
-        type: 'person',
-        position: {
-          x: startX + index * (NODE_WIDTH + HORIZONTAL_GAP),
-          y: level * (NODE_HEIGHT + VERTICAL_GAP),
-        },
-        data: {
-          label: person.preferred_name,
-          person,
-          birthYear,
-          deathYear,
-        },
-      })
+    if (!levelGroups.has(level)) levelGroups.set(level, [])
+    levelGroups.get(level)!.push({
+      group: groupArray,
+      isCouple: groupArray.length > 1
     })
   })
 
-  return nodes
+  // Create nodes with positions
+  const NODE_WIDTH = 180
+  const NODE_HEIGHT = 70
+  const HORIZONTAL_GAP = 60
+  const COUPLE_GAP = 16 // Small gap between spouses
+  const VERTICAL_GAP = 120
+
+  const nodes: Node[] = []
+  const nodePositions = new Map<string, { x: number; y: number }>()
+  const personMap = new Map(people.map(p => [p.id, p]))
+
+  levelGroups.forEach((groups, level) => {
+    // Calculate total width for this level
+    let totalWidth = 0
+    groups.forEach((group, idx) => {
+      if (group.isCouple) {
+        totalWidth += NODE_WIDTH * group.group.length + COUPLE_GAP * (group.group.length - 1)
+      } else {
+        totalWidth += NODE_WIDTH
+      }
+      if (idx < groups.length - 1) totalWidth += HORIZONTAL_GAP
+    })
+
+    let currentX = -totalWidth / 2
+    const y = level * (NODE_HEIGHT + VERTICAL_GAP)
+
+    groups.forEach((group, groupIdx) => {
+      group.group.forEach((personId, personIdx) => {
+        const person = personMap.get(personId)
+        if (!person) return
+
+        const birthYear = person.birth_date?.split('-')[0]
+        const deathYear = person.death_date?.split('-')[0]
+
+        const x = currentX
+        nodePositions.set(personId, { x, y })
+
+        nodes.push({
+          id: personId,
+          type: 'person',
+          position: { x, y },
+          data: {
+            label: person.preferred_name,
+            person,
+            birthYear,
+            deathYear,
+          },
+        })
+
+        currentX += NODE_WIDTH + (group.isCouple ? COUPLE_GAP : 0)
+      })
+
+      if (groupIdx < groups.length - 1) {
+        currentX += HORIZONTAL_GAP - (group.isCouple ? COUPLE_GAP : 0)
+      }
+    })
+  })
+
+  // Create edges with improved styling
+  const edges: Edge[] = relationships.map((rel) => {
+    const isParentType = rel.relationship_type === 'parent_child' ||
+      rel.relationship_type === 'adoptive_parent' ||
+      rel.relationship_type === 'step_parent' ||
+      rel.relationship_type === 'foster_parent' ||
+      rel.relationship_type === 'guardian'
+
+    const isSpouseType = rel.relationship_type === 'spouse' || rel.relationship_type === 'partner'
+    const isSiblingType = rel.relationship_type === 'sibling'
+    const color = getRelationshipColor(rel.relationship_type)
+
+    return {
+      id: rel.id,
+      source: rel.person_a_id,
+      target: rel.person_b_id,
+      type: isSpouseType ? 'straight' : 'smoothstep',
+      animated: false,
+      style: {
+        stroke: color,
+        strokeWidth: isSpouseType ? 3 : 2,
+        strokeDasharray: isSpouseType ? '8,4' : isSiblingType ? '4,4' : undefined,
+        opacity: 0.7,
+      },
+      markerEnd: isParentType
+        ? {
+            type: MarkerType.ArrowClosed,
+            color,
+            width: 20,
+            height: 20,
+          }
+        : undefined,
+    }
+  })
+
+  return { nodes, edges }
 }
 
 function TreeContent() {
@@ -229,6 +414,7 @@ function TreeContent() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([])
   const [loading, setLoading] = useState(true)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  const [relationshipCount, setRelationshipCount] = useState(0)
   const { fitView, zoomIn, zoomOut } = useReactFlow()
 
   useEffect(() => {
@@ -247,34 +433,14 @@ function TreeContent() {
         .select('*')
         .eq('workspace_id', currentWorkspace.id)
 
-      if (people && relationships) {
-        // Layout nodes
-        const layoutedNodes = layoutNodes(people, relationships)
+      if (people) {
+        const { nodes: layoutedNodes, edges: layoutedEdges } = layoutNodes(
+          people,
+          relationships || []
+        )
         setNodes(layoutedNodes)
-
-        // Create edges from relationships
-        const relationshipEdges: Edge[] = relationships.map((rel) => ({
-          id: rel.id,
-          source: rel.person_a_id,
-          target: rel.person_b_id,
-          type: 'smoothstep',
-          animated: rel.relationship_type === 'spouse' || rel.relationship_type === 'partner',
-          label: getRelationshipLabel(rel.relationship_type),
-          labelStyle: { fontSize: 10, fill: '#78716c' },
-          labelBgStyle: { fill: 'white', fillOpacity: 0.8 },
-          style: {
-            stroke: getRelationshipColor(rel.relationship_type),
-            strokeWidth: 2,
-          },
-          markerEnd: rel.relationship_type.includes('parent')
-            ? {
-                type: MarkerType.ArrowClosed,
-                color: getRelationshipColor(rel.relationship_type),
-              }
-            : undefined,
-        }))
-
-        setEdges(relationshipEdges)
+        setEdges(layoutedEdges)
+        setRelationshipCount(relationships?.length || 0)
       }
 
       setLoading(false)
@@ -303,10 +469,12 @@ function TreeContent() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
-          <span className="text-sm text-stone-400 dark:text-stone-500">Loading tree...</span>
+      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="h-12 w-12 animate-spin rounded-full border-3 border-stone-200 border-t-indigo-500 dark:border-stone-700 dark:border-t-indigo-400" />
+          </div>
+          <span className="text-sm font-medium text-stone-500 dark:text-stone-400">Loading family tree...</span>
         </div>
       </div>
     )
@@ -314,7 +482,7 @@ function TreeContent() {
 
   if (!currentWorkspace) {
     return (
-      <div className="flex h-full items-center justify-center">
+      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
         <p className="text-stone-400 dark:text-stone-500">Select a workspace</p>
       </div>
     )
@@ -322,21 +490,28 @@ function TreeContent() {
 
   if (nodes.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center max-w-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800">
-            <Users className="h-6 w-6 text-stone-400" />
+      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
+        <div className="text-center max-w-md px-6">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
+            <Users className="h-8 w-8 text-indigo-500 dark:text-indigo-400" />
           </div>
-          <p className="text-stone-600 dark:text-stone-400 mb-2 font-medium">Your family tree will appear here</p>
-          <p className="text-sm text-stone-400 dark:text-stone-500 mb-6">
-            Once you add people and connect them as family members, you&apos;ll see them displayed as an interactive tree.
+          <h2 className="text-xl font-semibold text-stone-800 dark:text-stone-200 mb-2">
+            Your family tree will appear here
+          </h2>
+          <p className="text-sm text-stone-500 dark:text-stone-400 mb-8 leading-relaxed">
+            Add family members and connect them with relationships to see your whakapapa come to life as an interactive tree.
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <Link href="/people/new">
-              <Button className="w-full">Add someone to get started</Button>
+              <Button className="w-full h-11 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/25">
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add your first family member
+              </Button>
             </Link>
             <Link href="/people">
-              <Button variant="outline" className="w-full">View people list</Button>
+              <Button variant="outline" className="w-full h-11">
+                View people list
+              </Button>
             </Link>
           </div>
         </div>
@@ -344,8 +519,37 @@ function TreeContent() {
     )
   }
 
+  // Show hint if people exist but no relationships
+  const showRelationshipHint = nodes.length > 1 && relationshipCount === 0
+
   return (
-    <div className="h-full relative">
+    <div className="h-full relative bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
+      {/* Relationship hint banner */}
+      <AnimatePresence>
+        {showRelationshipHint && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-10"
+          >
+            <div className="bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800/50 rounded-xl px-4 py-3 shadow-lg backdrop-blur-sm flex items-center gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center">
+                <LinkIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                  Connect your family members
+                </p>
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Click a person, then &quot;Add relationship&quot; to link them
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <div className="h-full">
@@ -358,28 +562,53 @@ function TreeContent() {
               onNodeDoubleClick={onNodeDoubleClick}
               onPaneClick={onPaneClick}
               nodeTypes={nodeTypes}
+              connectionLineType={ConnectionLineType.SmoothStep}
               fitView
-              fitViewOptions={{ padding: 0.2 }}
+              fitViewOptions={{ padding: 0.3 }}
               minZoom={0.1}
               maxZoom={2}
               proOptions={{ hideAttribution: true }}
+              defaultEdgeOptions={{
+                style: { strokeWidth: 2 },
+              }}
             >
-              <Background gap={20} size={1} />
+              <Background
+                gap={24}
+                size={1.5}
+                color="#d6d3d1"
+                className="dark:opacity-20"
+              />
               <MiniMap
-                nodeColor={() => '#e7e5e4'}
-                maskColor="rgba(0, 0, 0, 0.1)"
-                className="bg-white/80 dark:bg-stone-900/80 rounded-lg border border-stone-200 dark:border-stone-700"
+                nodeColor={() => '#a8a29e'}
+                maskColor="rgba(0, 0, 0, 0.08)"
+                className="!bg-white/90 dark:!bg-stone-900/90 !rounded-xl !border !border-stone-200/80 dark:!border-stone-700/80 !shadow-lg backdrop-blur-sm"
+                style={{ width: 120, height: 80 }}
               />
 
-              {/* Custom Controls Panel */}
-              <Panel position="top-left" className="flex gap-1">
-                <Button variant="outline" size="icon" onClick={() => zoomIn()}>
+              {/* Elegant Controls */}
+              <Panel position="top-left" className="flex gap-1.5">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => zoomIn()}
+                  className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                >
                   <ZoomIn className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => zoomOut()}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => zoomOut()}
+                  className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                >
                   <ZoomOut className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => fitView({ padding: 0.2 })}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => fitView({ padding: 0.3 })}
+                  className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                >
                   <Maximize className="h-4 w-4" />
                 </Button>
               </Panel>
@@ -387,7 +616,10 @@ function TreeContent() {
               {/* Add Person Button */}
               <Panel position="top-right">
                 <Link href="/people/new">
-                  <Button size="sm" className="gap-2">
+                  <Button
+                    size="sm"
+                    className="gap-2 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-stone-700/80 shadow-sm hover:bg-white dark:hover:bg-stone-800"
+                  >
                     <UserPlus className="h-4 w-4" />
                     Add person
                   </Button>
@@ -396,77 +628,101 @@ function TreeContent() {
             </ReactFlow>
           </div>
         </ContextMenuTrigger>
-        <ContextMenuContent>
-          <ContextMenuItem onClick={() => router.push('/people/new')}>
-            <UserPlus className="mr-2 h-4 w-4" />
+        <ContextMenuContent className="min-w-[180px]">
+          <ContextMenuItem onClick={() => router.push('/people/new')} className="gap-2">
+            <UserPlus className="h-4 w-4" />
             Add new person
           </ContextMenuItem>
           <ContextMenuSeparator />
-          <ContextMenuItem onClick={() => fitView({ padding: 0.2 })}>
-            <Maximize className="mr-2 h-4 w-4" />
+          <ContextMenuItem onClick={() => fitView({ padding: 0.3 })} className="gap-2">
+            <Maximize className="h-4 w-4" />
             Fit to view
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => zoomIn()}>
-            <ZoomIn className="mr-2 h-4 w-4" />
+          <ContextMenuItem onClick={() => zoomIn()} className="gap-2">
+            <ZoomIn className="h-4 w-4" />
             Zoom in
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => zoomOut()}>
-            <ZoomOut className="mr-2 h-4 w-4" />
+          <ContextMenuItem onClick={() => zoomOut()} className="gap-2">
+            <ZoomOut className="h-4 w-4" />
             Zoom out
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
-      {/* Selected Person Actions */}
-      {selectedNode && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-stone-900 rounded-lg border border-stone-200 dark:border-stone-700 shadow-lg p-2 flex gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/people/${selectedNode.id}`)}
+      {/* Selected Person Actions - Floating pill */}
+      <AnimatePresence>
+        {selectedNode && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
           >
-            <Eye className="mr-2 h-4 w-4" />
-            View
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/people/${selectedNode.id}/edit`)}
-          >
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push(`/people/${selectedNode.id}/relationships/new`)}
-          >
-            <LinkIcon className="mr-2 h-4 w-4" />
-            Add relationship
-          </Button>
-        </div>
-      )}
+            <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-xl shadow-stone-900/10 dark:shadow-stone-950/50 px-2 py-1.5 flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(`/people/${selectedNode.id}`)}
+                className="rounded-full h-9 px-4 hover:bg-stone-100 dark:hover:bg-stone-800"
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                View
+              </Button>
+              <div className="w-px h-5 bg-stone-200 dark:bg-stone-700" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(`/people/${selectedNode.id}/edit`)}
+                className="rounded-full h-9 px-4 hover:bg-stone-100 dark:hover:bg-stone-800"
+              >
+                <Pencil className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+              <div className="w-px h-5 bg-stone-200 dark:bg-stone-700" />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push(`/people/${selectedNode.id}/relationships/new`)}
+                className="rounded-full h-9 px-4 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
+              >
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Add relationship
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Relationship Legend */}
-      <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm rounded-lg border border-stone-200 dark:border-stone-700 p-3 text-xs">
-        <p className="font-medium text-stone-700 dark:text-stone-300 mb-2">Relationships</p>
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-blue-500 rounded" />
-            <span className="text-stone-600 dark:text-stone-400">Parent → Child</span>
+      {/* Relationship Legend - Minimalist */}
+      <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 flex items-center justify-center">
+              <svg width="20" height="8" viewBox="0 0 20 8">
+                <line x1="0" y1="4" x2="14" y2="4" stroke="#6366f1" strokeWidth="2" />
+                <polygon points="14,0 20,4 14,8" fill="#6366f1" />
+              </svg>
+            </div>
+            <span className="text-xs text-stone-600 dark:text-stone-400">Parent</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-pink-500 rounded" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #ec4899 0, #ec4899 4px, transparent 4px, transparent 8px)' }} />
-            <span className="text-stone-600 dark:text-stone-400">Married / Partner</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 flex items-center justify-center">
+              <svg width="20" height="8" viewBox="0 0 20 8">
+                <line x1="0" y1="4" x2="20" y2="4" stroke="#ec4899" strokeWidth="3" strokeDasharray="6,3" />
+              </svg>
+            </div>
+            <span className="text-xs text-stone-600 dark:text-stone-400">Partner</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-green-500 rounded" />
-            <span className="text-stone-600 dark:text-stone-400">Siblings</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 flex items-center justify-center">
+              <svg width="20" height="8" viewBox="0 0 20 8">
+                <line x1="0" y1="4" x2="20" y2="4" stroke="#10b981" strokeWidth="2" strokeDasharray="3,3" />
+              </svg>
+            </div>
+            <span className="text-xs text-stone-600 dark:text-stone-400">Sibling</span>
           </div>
         </div>
-        <p className="text-stone-400 dark:text-stone-500 mt-2">
-          Click to select • Double-click to view
-        </p>
       </div>
     </div>
   )

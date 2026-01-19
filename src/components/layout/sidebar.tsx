@@ -10,6 +10,7 @@ import {
   History,
   Settings,
   Download,
+  Upload,
   LogOut,
   Sparkles,
   TreePine,
@@ -30,6 +31,7 @@ const navItems = [
 
 const bottomItems = [
   { href: '/settings', label: 'Settings', icon: Settings },
+  { href: '/import', label: 'Import', icon: Upload },
   { href: '/export', label: 'Export', icon: Download },
 ]
 

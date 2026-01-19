@@ -60,6 +60,7 @@ export default function EditPersonPage() {
         death_place: data.death_place || null,
         gender: data.gender || null,
         bio: data.bio || null,
+        photo_url: data.photo_url || null,
       })
       .eq('id', personId)
 
