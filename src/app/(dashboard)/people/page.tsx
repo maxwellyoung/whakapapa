@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EmptyState, emptyStates } from '@/components/ui/empty-state'
 import { PersonCard } from '@/components/people/person-card'
+import { Skeleton, SkeletonPersonCard } from '@/components/ui/skeleton'
 import { useAppShortcuts, ShortcutHint } from '@/hooks/use-keyboard-shortcuts'
 import type { Person } from '@/types'
 
@@ -60,15 +61,26 @@ export default function PeoplePage() {
 
   if (workspaceLoading || loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="flex flex-col items-center gap-3"
-        >
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
-          <span className="text-sm text-stone-400 dark:text-stone-500">Loading...</span>
-        </motion.div>
+      <div className="p-6 md:p-8">
+        {/* Skeleton header */}
+        <header className="mb-8">
+          <div className="flex items-start justify-between">
+            <div>
+              <Skeleton className="h-8 w-24 mb-2" />
+              <Skeleton className="h-5 w-32" />
+            </div>
+            <Skeleton className="h-10 w-28 rounded-xl" />
+          </div>
+          <div className="mt-6 max-w-md">
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
+        </header>
+        {/* Skeleton grid */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <SkeletonPersonCard key={i} />
+          ))}
+        </div>
       </div>
     )
   }

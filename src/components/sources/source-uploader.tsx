@@ -154,7 +154,7 @@ export function SourceUploader({ onComplete, onCancel }: SourceUploaderProps) {
               </p>
             </div>
             {!uploading && (
-              <Button variant="ghost" size="icon" onClick={() => setFile(null)}>
+              <Button variant="ghost" size="icon" onClick={() => setFile(null)} aria-label="Remove file">
                 <X className="h-4 w-4" />
               </Button>
             )}

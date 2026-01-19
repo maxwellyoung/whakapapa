@@ -6,6 +6,7 @@ import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { Skeleton, SkeletonAvatar } from '@/components/ui/skeleton'
 import type { ActivityLog, Profile } from '@/types'
 
 interface ActivityWithProfile extends ActivityLog {
@@ -68,10 +69,21 @@ export default function ActivityPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
-          <span className="text-sm text-stone-400 dark:text-stone-500">Loading...</span>
+      <div className="p-6 md:p-8">
+        <div className="mb-8">
+          <Skeleton className="h-8 w-28 mb-2" />
+          <Skeleton className="h-5 w-48" />
+        </div>
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="rounded-xl border border-stone-200 dark:border-stone-700 p-4 flex items-center gap-4">
+              <SkeletonAvatar size="sm" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )

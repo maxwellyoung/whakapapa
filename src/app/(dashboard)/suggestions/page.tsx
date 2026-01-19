@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import { canEdit } from '@/lib/permissions'
 import { getErrorToast } from '@/lib/errors'
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import type { Source } from '@/types'
 
 interface Suggestion {
@@ -149,10 +150,17 @@ export default function SuggestionsPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
-          <span className="text-sm text-stone-400 dark:text-stone-500">Loading...</span>
+      <div className="p-6 md:p-8">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-8">
+            <Skeleton className="h-8 w-32 mb-2" />
+            <Skeleton className="h-5 w-64" />
+          </div>
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         </div>
       </div>
     )

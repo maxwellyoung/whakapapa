@@ -129,6 +129,7 @@ export function PersonForm({ initialData, onSubmit, onSelectExisting }: PersonFo
                   value={preferredName}
                   onChange={(e) => setPreferredName(e.target.value)}
                   required
+                  autoFocus
                 />
               </div>
             </div>

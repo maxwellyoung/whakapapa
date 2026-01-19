@@ -107,6 +107,33 @@ body {
   font-family: var(--font-sans);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   line-height: 1.6;
+  letter-spacing: -0.011em;
+}
+
+/* Apple-inspired typography scale */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  line-height: 1.2;
+}
+
+h1 { font-size: 2rem; line-height: 1.15; }
+h2 { font-size: 1.5rem; line-height: 1.2; }
+h3 { font-size: 1.25rem; }
+h4 { font-size: 1.125rem; }
+
+p {
+  line-height: 1.65;
+}
+
+/* Small text refinement */
+.text-sm {
+  line-height: 1.5;
+}
+
+.text-xs {
+  line-height: 1.4;
+  letter-spacing: 0;
 }
 
 /* Selection */

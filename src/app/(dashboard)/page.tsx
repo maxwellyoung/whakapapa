@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Users, FileText, GitBranch, Sparkles, ArrowRight, History } from 'lucide-react'
+import { Users, FileText, GitBranch, Sparkles, ArrowRight } from 'lucide-react'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { QuickCapture } from '@/components/capture/quick-capture'
+import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 
 interface Stats {
   people: number
@@ -54,10 +55,27 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
-          <span className="text-sm text-stone-400 dark:text-stone-500">Loading...</span>
+      <div className="p-6 md:p-8 max-w-6xl mx-auto">
+        {/* Skeleton header */}
+        <div className="mb-8">
+          <Skeleton className="h-8 w-48 mb-2" />
+          <Skeleton className="h-5 w-36" />
+        </div>
+        {/* Skeleton quick capture */}
+        <div className="mb-8">
+          <Skeleton className="h-32 w-full rounded-xl" />
+        </div>
+        {/* Skeleton stats grid */}
+        <div className="grid gap-4 md:grid-cols-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="rounded-xl border border-stone-200 dark:border-stone-800 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <Skeleton className="h-10 w-10 rounded-lg" />
+              </div>
+              <Skeleton className="h-7 w-12 mb-1" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+          ))}
         </div>
       </div>
     )

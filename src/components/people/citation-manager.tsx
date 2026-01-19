@@ -226,7 +226,7 @@ export function CitationManager({ entityType, entityId, field, compact = false }
                   )}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(citation.id)}>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDelete(citation.id)} aria-label="Delete citation">
                 <Trash2 className="h-3 w-3" />
               </Button>
             </div>

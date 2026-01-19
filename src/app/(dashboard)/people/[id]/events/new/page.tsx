@@ -176,7 +176,7 @@ export default function NewEventPage() {
               <div className="space-y-2">
                 <Label>Event Type</Label>
                 <Select value={eventType} onValueChange={(v) => setEventType(v as EventType)}>
-                  <SelectTrigger>
+                  <SelectTrigger autoFocus>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

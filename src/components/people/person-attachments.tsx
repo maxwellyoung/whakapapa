@@ -367,7 +367,7 @@ export function PersonAttachments({
                           <div className="flex gap-1">
                             {url && (
                               <a href={url} target="_blank" rel="noopener noreferrer">
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Download file">
                                   <Download className="h-4 w-4" />
                                 </Button>
                               </a>
@@ -378,6 +378,7 @@ export function PersonAttachments({
                                 size="icon"
                                 className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
                                 onClick={() => handleRemoveAttachment(citation_id, source.title)}
+                                aria-label="Remove attachment"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
