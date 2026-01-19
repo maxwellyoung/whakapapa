@@ -79,10 +79,10 @@ export function useAppShortcuts() {
       description: 'Go to Sources',
     },
     {
-      key: 'n',
+      key: 'i',
       meta: true,
       handler: () => router.push('/people/new'),
-      description: 'Add new person',
+      description: 'Add new person (Insert)',
     },
     {
       key: ',',

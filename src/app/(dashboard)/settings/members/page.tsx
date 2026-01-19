@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, Copy, Check, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Copy, Check, Trash2, ChevronLeft, Mail, Shield, UserCog } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -23,8 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import {
   getRoleLabel,
@@ -154,6 +161,31 @@ export default function MembersPage() {
     toast.success('Member removed')
   }
 
+  const handleChangeRole = async (membershipId: string, memberId: string, newRole: UserRole) => {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (user?.id === memberId) {
+      toast.error('Cannot change your own role')
+      return
+    }
+
+    const { error } = await supabase
+      .from('memberships')
+      .update({ role: newRole })
+      .eq('id', membershipId)
+
+    if (error) {
+      toast.error('Failed to change role')
+      return
+    }
+
+    setMembers((prev) =>
+      prev.map((m) => (m.id === membershipId ? { ...m, role: newRole } : m))
+    )
+    toast.success(`Role changed to ${getRoleLabel(newRole)}`)
+  }
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -171,17 +203,28 @@ export default function MembersPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mx-auto max-w-2xl">
-        <div className="mb-6 flex items-center justify-between">
+        {/* Back navigation */}
+        <Link
+          href="/settings"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Settings
+        </Link>
+
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
           <div>
             <h1 className="text-2xl font-bold">Members</h1>
-            <p className="text-muted-foreground">{members.length} members</p>
+            <p className="text-muted-foreground">
+              {members.length} {members.length === 1 ? 'member' : 'members'} in this workspace
+            </p>
           </div>
           {isAdmin && (
-            <Button onClick={() => setInviteDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Invite
+            <Button onClick={() => setInviteDialogOpen(true)} className="w-full sm:w-auto">
+              <Mail className="mr-2 h-4 w-4" />
+              Invite member
             </Button>
           )}
         </div>
@@ -190,35 +233,53 @@ export default function MembersPage() {
         {invites.length > 0 && isAdmin && (
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle className="text-lg">Pending Invites</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Mail className="h-5 w-5 text-amber-500" />
+                Pending Invites
+              </CardTitle>
+              <CardDescription>
+                Share these links with people you want to invite
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3">
               {invites.map((invite) => (
                 <div
                   key={invite.id}
-                  className="flex items-center justify-between rounded-md border p-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3"
                 >
-                  <div>
-                    <Badge variant="outline">{getRoleLabel(invite.role)}</Badge>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Created {new Date(invite.created_at).toLocaleDateString()}
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/50">
+                      <Mail className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <Badge variant="outline">{getRoleLabel(invite.role)}</Badge>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Created {new Date(invite.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 self-end sm:self-auto">
                     <Button
-                      variant="ghost"
-                      size="icon"
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleCopyInvite(invite.token)}
+                      className="gap-2"
                     >
                       {copiedId === invite.token ? (
-                        <Check className="h-4 w-4" />
+                        <>
+                          <Check className="h-4 w-4" />
+                          Copied
+                        </>
                       ) : (
-                        <Copy className="h-4 w-4" />
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy link
+                        </>
                       )}
                     </Button>
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       onClick={() => handleDeleteInvite(invite.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -233,7 +294,13 @@ export default function MembersPage() {
         {/* Members list */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Members</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Shield className="h-5 w-5 text-indigo-500" />
+              Members
+            </CardTitle>
+            <CardDescription>
+              People who have access to this workspace
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             {members.map((member) => {
@@ -248,26 +315,58 @@ export default function MembersPage() {
               return (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between rounded-md border p-3"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback className="bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 text-sm font-medium">
+                        {initials}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-medium">{name}</p>
-                      <Badge variant="secondary">{getRoleLabel(member.role)}</Badge>
+                      <p className="font-medium">{name}</p>
                     </div>
                   </div>
-                  {isAdmin && member.role !== 'owner' && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveMember(member.id, member.user_id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <div className="flex items-center gap-2 self-end sm:self-auto">
+                    {isAdmin && member.role !== 'owner' ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <UserCog className="h-4 w-4" />
+                            {getRoleLabel(member.role)}
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {ASSIGNABLE_ROLES.map((role) => (
+                            <DropdownMenuItem
+                              key={role}
+                              onClick={() => handleChangeRole(member.id, member.user_id, role)}
+                              className={member.role === role ? 'bg-muted' : ''}
+                            >
+                              <div>
+                                <span className="font-medium">{getRoleLabel(role)}</span>
+                                <p className="text-xs text-muted-foreground">
+                                  {getRoleDescription(role)}
+                                </p>
+                              </div>
+                            </DropdownMenuItem>
+                          ))}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleRemoveMember(member.id, member.user_id)}
+                            className="text-red-600 dark:text-red-400"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove from workspace
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      <Badge variant={member.role === 'owner' ? 'default' : 'secondary'}>
+                        {getRoleLabel(member.role)}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               )
             })}

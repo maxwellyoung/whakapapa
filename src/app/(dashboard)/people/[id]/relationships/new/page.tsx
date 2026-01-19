@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -112,7 +111,17 @@ export default function NewRelationshipPage() {
       p.family_name?.toLowerCase().includes(search.toLowerCase())
   )
 
-  const handleCreate = async () => {
+  const [relationshipsAdded, setRelationshipsAdded] = useState(0)
+  const [justAdded, setJustAdded] = useState<string | null>(null)
+
+  const resetForm = () => {
+    setSelectedPerson(null)
+    setNotes('')
+    setSearch('')
+    setJustAdded(null)
+  }
+
+  const handleCreate = async (addAnother = false) => {
     if (!currentWorkspace || !person || !selectedPerson || !relationshipOption) return
 
     setCreating(true)
@@ -141,8 +150,20 @@ export default function NewRelationshipPage() {
       return
     }
 
-    toast.success(`Connected ${person.preferred_name} and ${selectedPerson.preferred_name}`)
-    router.push(`/people/${personId}`)
+    const addedName = selectedPerson.preferred_name
+    setRelationshipsAdded(prev => prev + 1)
+
+    // Remove the just-added person from the available list
+    setPeople(prev => prev.filter(p => p.id !== selectedPerson.id))
+
+    if (addAnother) {
+      setJustAdded(addedName)
+      resetForm()
+      toast.success(`Connected to ${addedName}`, { description: 'Add another relationship below' })
+    } else {
+      toast.success(`Connected ${person.preferred_name} and ${addedName}`)
+      router.push(`/people/${personId}`)
+    }
   }
 
   if (loading) {
@@ -171,11 +192,32 @@ export default function NewRelationshipPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-8">
-      <h1 className="mb-2 text-2xl font-bold">Connect Family Members</h1>
-      <p className="mb-6 text-muted-foreground">
-        Add a family connection for <strong>{person.preferred_name}</strong>.
-        This helps build your family tree.
-      </p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="mb-2 text-2xl font-bold">Connect Family Members</h1>
+          <p className="text-muted-foreground">
+            Add family connections for <strong>{person.preferred_name}</strong>.
+          </p>
+        </div>
+        {relationshipsAdded > 0 && (
+          <div className="text-right">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 dark:bg-green-900/50 px-3 py-1 text-sm font-medium text-green-700 dark:text-green-300">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              {relationshipsAdded} added
+            </span>
+          </div>
+        )}
+      </div>
+
+      {justAdded && (
+        <div className="mb-6 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4">
+          <p className="text-sm text-green-800 dark:text-green-200">
+            <strong>{justAdded}</strong> connected! Add another relationship below, or click Done when finished.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Relationship Type */}
@@ -330,12 +372,24 @@ export default function NewRelationshipPage() {
         </Card>
 
         {/* Actions */}
-        <div className="flex gap-3">
-          <Button onClick={handleCreate} disabled={creating || !selectedPerson} size="lg">
-            {creating ? 'Saving...' : 'Save connection'}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button
+            onClick={() => handleCreate(true)}
+            disabled={creating || !selectedPerson}
+            size="lg"
+            variant="outline"
+          >
+            {creating ? 'Saving...' : 'Save & add another'}
           </Button>
-          <Button variant="outline" size="lg" onClick={() => router.back()}>
-            Cancel
+          <Button onClick={() => handleCreate(false)} disabled={creating || !selectedPerson} size="lg">
+            {creating ? 'Saving...' : relationshipsAdded > 0 ? 'Save & done' : 'Save connection'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="lg"
+            onClick={() => router.push(`/people/${personId}`)}
+          >
+            {relationshipsAdded > 0 ? 'Done' : 'Cancel'}
           </Button>
         </div>
       </div>

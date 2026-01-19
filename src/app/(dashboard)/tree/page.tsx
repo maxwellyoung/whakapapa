@@ -68,10 +68,26 @@ function PersonNode({
 
   return (
     <>
+      {/* Top handle for incoming parent connections */}
       <Handle
         type="target"
         position={Position.Top}
+        id="top"
         className="!w-3 !h-3 !bg-stone-300 !border-2 !border-white dark:!bg-stone-600 dark:!border-stone-800 !-top-1.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      {/* Left handle for spouse/sibling connections */}
+      <Handle
+        type="target"
+        position={Position.Left}
+        id="left"
+        className="!w-2.5 !h-2.5 !bg-pink-300 !border-2 !border-white dark:!bg-pink-600 dark:!border-stone-800 !-left-1 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+      />
+      {/* Right handle for spouse/sibling connections */}
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="right"
+        className="!w-2.5 !h-2.5 !bg-pink-300 !border-2 !border-white dark:!bg-pink-600 dark:!border-stone-800 !-right-1 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
       />
       <TooltipProvider delayDuration={300}>
         <Tooltip>
@@ -160,9 +176,11 @@ function PersonNode({
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+      {/* Bottom handle for outgoing child connections */}
       <Handle
         type="source"
         position={Position.Bottom}
+        id="bottom"
         className="!w-3 !h-3 !bg-stone-300 !border-2 !border-white dark:!bg-stone-600 dark:!border-stone-800 !-bottom-1.5 !rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
       />
     </>
@@ -369,7 +387,7 @@ function layoutNodes(people: Person[], relationships: Relationship[]): { nodes: 
     })
   })
 
-  // Create edges with improved styling
+  // Create edges with improved styling and proper handle connections
   const edges: Edge[] = relationships.map((rel) => {
     const isParentType = rel.relationship_type === 'parent_child' ||
       rel.relationship_type === 'adoptive_parent' ||
@@ -381,11 +399,20 @@ function layoutNodes(people: Person[], relationships: Relationship[]): { nodes: 
     const isSiblingType = rel.relationship_type === 'sibling'
     const color = getRelationshipColor(rel.relationship_type)
 
+    // Determine handle connections based on relationship type
+    // Spouse/partner: connect horizontally (right to left)
+    // Parent/child: connect vertically (bottom to top)
+    // Sibling: connect horizontally (right to left)
+    const sourceHandle = isParentType ? 'bottom' : 'right'
+    const targetHandle = isParentType ? 'top' : 'left'
+
     return {
       id: rel.id,
       source: rel.person_a_id,
       target: rel.person_b_id,
-      type: isSpouseType ? 'straight' : 'smoothstep',
+      sourceHandle,
+      targetHandle,
+      type: isSpouseType || isSiblingType ? 'straight' : 'smoothstep',
       animated: false,
       style: {
         stroke: color,
@@ -613,15 +640,15 @@ function TreeContent() {
                 </Button>
               </Panel>
 
-              {/* Add Person Button */}
-              <Panel position="top-right">
+              {/* Add Person Button - responsive positioning */}
+              <Panel position="top-right" className="md:!top-[120px]">
                 <Link href="/people/new">
                   <Button
                     size="sm"
                     className="gap-2 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm text-stone-700 dark:text-stone-200 border border-stone-200/80 dark:border-stone-700/80 shadow-sm hover:bg-white dark:hover:bg-stone-800"
                   >
                     <UserPlus className="h-4 w-4" />
-                    Add person
+                    <span className="hidden sm:inline">Add person</span>
                   </Button>
                 </Link>
               </Panel>
@@ -657,7 +684,7 @@ function TreeContent() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10"
+            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20"
           >
             <div className="bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-xl shadow-stone-900/10 dark:shadow-stone-950/50 px-2 py-1.5 flex items-center gap-1">
               <Button
@@ -694,8 +721,8 @@ function TreeContent() {
         )}
       </AnimatePresence>
 
-      {/* Relationship Legend - Minimalist */}
-      <div className="absolute bottom-6 right-6 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3">
+      {/* Relationship Legend - Minimalist - hidden on mobile, shown on md+ */}
+      <div className="hidden md:block absolute top-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3 z-20">
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
@@ -722,6 +749,22 @@ function TreeContent() {
             </div>
             <span className="text-xs text-stone-600 dark:text-stone-400">Sibling</span>
           </div>
+        </div>
+      </div>
+
+      {/* Mobile legend - compact horizontal version at bottom */}
+      <div className="md:hidden absolute bottom-20 left-4 right-4 flex justify-center gap-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-2 z-10">
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-0.5 bg-indigo-500 rounded-full" />
+          <span className="text-[10px] text-stone-500 dark:text-stone-400">Parent</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-0.5 bg-pink-500 rounded-full" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #ec4899, #ec4899 3px, transparent 3px, transparent 5px)' }} />
+          <span className="text-[10px] text-stone-500 dark:text-stone-400">Partner</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-4 h-0.5 bg-emerald-500 rounded-full" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #10b981, #10b981 2px, transparent 2px, transparent 4px)' }} />
+          <span className="text-[10px] text-stone-500 dark:text-stone-400">Sibling</span>
         </div>
       </div>
     </div>

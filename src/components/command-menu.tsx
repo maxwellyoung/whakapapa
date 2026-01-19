@@ -94,7 +94,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
           <CommandItem onSelect={() => runCommand(() => router.push('/people/new'))}>
             <UserPlus className="mr-2 h-4 w-4" />
             Add new person
-            <CommandShortcut>⌘N</CommandShortcut>
+            <CommandShortcut>⌘I</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/sources'))}>
             <FilePlus className="mr-2 h-4 w-4" />

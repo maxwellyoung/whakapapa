@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Users, FolderTree, Trash2 } from 'lucide-react'
+import { Users, FolderTree, Trash2, ChevronRight, Settings2, Palette } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
@@ -17,7 +17,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
 import { createClient } from '@/lib/supabase/client'
 import { canManageMembers, canDelete } from '@/lib/permissions'
 import { toast } from 'sonner'
@@ -89,32 +88,45 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-8">
       <div className="mx-auto max-w-2xl">
-        <h1 className="mb-6 text-2xl font-bold">Settings</h1>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage your workspace and preferences
+          </p>
+        </div>
 
         <div className="space-y-6">
           {/* Workspace settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Workspace</CardTitle>
-              <CardDescription>Manage your workspace settings</CardDescription>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+                  <Settings2 className="h-5 w-5 text-stone-500" />
+                </div>
+                <div>
+                  <CardTitle>Workspace</CardTitle>
+                  <CardDescription>General workspace settings</CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">Workspace name</Label>
                 <Input
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={!isAdmin}
+                  placeholder="My Family Tree"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Slug</Label>
-                <Input value={currentWorkspace.slug} disabled />
+                <Label>Workspace ID</Label>
+                <Input value={currentWorkspace.slug} disabled className="font-mono text-sm" />
                 <p className="text-xs text-muted-foreground">
-                  Used in invite links. Cannot be changed.
+                  Used in invite links and URLs. Cannot be changed.
                 </p>
               </div>
               {isAdmin && (
@@ -125,24 +137,41 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Quick links */}
+          {/* Management links */}
           {isAdmin && (
             <Card>
               <CardHeader>
                 <CardTitle>Manage</CardTitle>
+                <CardDescription>Access controls and team management</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Link href="/settings/members">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Users className="mr-2 h-4 w-4" />
-                    Members
-                  </Button>
+                <Link href="/settings/members" className="block">
+                  <div className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Members</p>
+                        <p className="text-sm text-muted-foreground">Invite and manage team access</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
                 </Link>
-                <Link href="/settings/groups">
-                  <Button variant="outline" className="w-full justify-start">
-                    <FolderTree className="mr-2 h-4 w-4" />
-                    Groups
-                  </Button>
+                <Link href="/settings/groups" className="block">
+                  <div className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center">
+                        <FolderTree className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Groups</p>
+                        <p className="text-sm text-muted-foreground">Control visibility with groups</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </div>
                 </Link>
               </CardContent>
             </Card>
@@ -150,18 +179,30 @@ export default function SettingsPage() {
 
           {/* Danger zone */}
           {isOwner && (
-            <Card className="border-red-200 dark:border-red-900">
+            <Card className="border-red-200 dark:border-red-900/50">
               <CardHeader>
-                <CardTitle className="text-red-600">Danger Zone</CardTitle>
+                <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+                <CardDescription>
+                  Irreversible and destructive actions
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button
-                  variant="destructive"
-                  onClick={() => setDeleteDialogOpen(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete workspace
-                </Button>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20">
+                  <div>
+                    <p className="font-medium text-red-900 dark:text-red-100">Delete workspace</p>
+                    <p className="text-sm text-red-600 dark:text-red-400">
+                      Permanently delete this workspace and all its data
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="w-full sm:w-auto"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
