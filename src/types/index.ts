@@ -239,6 +239,90 @@ export interface WorkspaceFormData {
   slug: string
 }
 
+// Memory types
+export type MemoryType = 'story' | 'anecdote' | 'quote' | 'trait' | 'recipe' | 'tradition'
+
+export interface Memory {
+  id: string
+  workspace_id: string
+  person_id: string
+  title: string | null
+  content: string
+  memory_type: MemoryType
+  media_url: string | null
+  media_type: string | null
+  duration_seconds: number | null
+  contributed_by_name: string | null
+  contributed_by_user_id: string | null
+  recorded_date: string | null
+  created_at: string
+  created_by: string | null
+  updated_at: string
+}
+
+// Interview types
+export type InterviewCategory = 'childhood' | 'family' | 'career' | 'memories' | 'traditions' | 'advice'
+
+export interface InterviewPrompt {
+  id: string
+  workspace_id: string | null
+  question: string
+  category: InterviewCategory
+  description: string | null
+  sort_order: number
+  is_system: boolean
+  created_at: string
+}
+
+export interface InterviewResponse {
+  id: string
+  workspace_id: string
+  prompt_id: string | null
+  person_id: string
+  question: string
+  response: string | null
+  recording_url: string | null
+  recording_type: string | null
+  duration_seconds: number | null
+  transcription: string | null
+  answered_by_name: string | null
+  answered_date: string | null
+  status: 'pending' | 'recorded' | 'transcribed'
+  created_at: string
+  created_by: string | null
+  updated_at: string
+}
+
+// Photo tagging
+export interface PhotoTag {
+  id: string
+  source_id: string
+  person_id: string | null
+  x_position: number | null
+  y_position: number | null
+  width: number | null
+  height: number | null
+  unknown_label: string | null
+  is_confirmed: boolean
+  suggested_by: string | null
+  created_at: string
+  created_by: string | null
+}
+
+// Memorial tributes
+export interface MemorialTribute {
+  id: string
+  workspace_id: string
+  person_id: string
+  message: string
+  author_name: string
+  author_relation: string | null
+  author_user_id: string | null
+  photo_url: string | null
+  is_approved: boolean
+  created_at: string
+}
+
 // Utility types
 export type WithTimestamps<T> = T & {
   created_at: string

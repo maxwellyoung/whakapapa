@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { Pencil, Plus, Camera, Users, Clock, MapPin, Calendar } from 'lucide-react'
+import { Pencil, Plus, Camera, Users, Clock, MapPin, Calendar, BookOpen, MessageCircle, Heart } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ import { PersonAttachments } from '@/components/people/person-attachments'
 import { VisibilityControl } from '@/components/people/visibility-control'
 import { PersonTimeline } from '@/components/people/person-timeline'
 import { RelationshipFinder } from '@/components/people/relationship-finder'
+import { PersonMemories } from '@/components/people/person-memories'
+import { InterviewPrompts } from '@/components/people/interview-prompts'
 import { Skeleton, SkeletonAvatar, SkeletonText } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import type { Person, Relationship } from '@/types'
@@ -301,20 +303,52 @@ export default function PersonDetailPage() {
           )}
         </div>
 
+        {/* Memorial Link for Deceased */}
+        {person.death_date && (
+          <div className="mb-6 p-4 rounded-xl bg-stone-50 dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-pink-100 dark:bg-pink-900/50">
+                  <Heart className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                </div>
+                <div>
+                  <p className="font-medium text-stone-900 dark:text-stone-100">Memorial Page</p>
+                  <p className="text-sm text-stone-500 dark:text-stone-400">
+                    A tribute page to honor {person.preferred_name}&apos;s memory
+                  </p>
+                </div>
+              </div>
+              <Link href={`/people/${person.id}/memorial`}>
+                <Button variant="outline" size="sm">
+                  View Memorial
+                </Button>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Tabbed Content */}
         <Tabs defaultValue="timeline" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
             <TabsTrigger value="timeline" className="gap-2">
               <Clock className="h-4 w-4" />
-              Timeline
+              <span className="hidden sm:inline">Timeline</span>
             </TabsTrigger>
             <TabsTrigger value="relationships" className="gap-2">
               <Users className="h-4 w-4" />
-              Family
+              <span className="hidden sm:inline">Family</span>
+            </TabsTrigger>
+            <TabsTrigger value="stories" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Stories</span>
+            </TabsTrigger>
+            <TabsTrigger value="interview" className="gap-2">
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Interview</span>
             </TabsTrigger>
             <TabsTrigger value="media" className="gap-2">
               <Camera className="h-4 w-4" />
-              Media
+              <span className="hidden sm:inline">Media</span>
             </TabsTrigger>
           </TabsList>
 
@@ -366,6 +400,16 @@ export default function PersonDetailPage() {
                 />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Stories & Memories Tab */}
+          <TabsContent value="stories">
+            <PersonMemories person={person} />
+          </TabsContent>
+
+          {/* Interview Tab */}
+          <TabsContent value="interview">
+            <InterviewPrompts person={person} />
           </TabsContent>
 
           {/* Media Tab */}

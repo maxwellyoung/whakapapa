@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, FileJson, FileText } from 'lucide-react'
+import Link from 'next/link'
+import { Download, FileJson, FileText, Printer } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
@@ -227,6 +228,26 @@ export default function ExportPage() {
                 <Download className="mr-2 h-4 w-4" />
                 {exporting === 'gedcom' ? 'Exporting...' : 'Download GEDCOM'}
               </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Printer className="h-5 w-5" />
+                Print / PDF
+              </CardTitle>
+              <CardDescription>
+                Create printable family books, tree posters, and profile pages for offline sharing.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/export/print">
+                <Button variant="outline">
+                  <Printer className="mr-2 h-4 w-4" />
+                  Open Print Designer
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
