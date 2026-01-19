@@ -15,7 +15,8 @@
       "Bash(npx vercel --version)",
       "Bash(npm install:*)",
       "Bash(cat:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(npx supabase db push)"
     ]
   }
 }
