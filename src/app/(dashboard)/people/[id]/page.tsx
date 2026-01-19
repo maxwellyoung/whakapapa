@@ -20,6 +20,7 @@ import { PersonTimeline } from '@/components/people/person-timeline'
 import { RelationshipFinder } from '@/components/people/relationship-finder'
 import { PersonMemories } from '@/components/people/person-memories'
 import { InterviewPrompts } from '@/components/people/interview-prompts'
+import { QuickVoiceRecorder } from '@/components/people/quick-voice-recorder'
 import { Skeleton, SkeletonAvatar, SkeletonText } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import type { Person, Relationship } from '@/types'
@@ -431,6 +432,9 @@ export default function PersonDetailPage() {
           </p>
         </div>
       </div>
+
+      {/* Quick Voice Recorder FAB */}
+      <QuickVoiceRecorder person={person} />
     </div>
   )
 }

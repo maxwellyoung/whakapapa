@@ -16,7 +16,8 @@
       "Bash(npm install:*)",
       "Bash(cat:*)",
       "Bash(npm run lint:*)",
-      "Bash(npx supabase db push)"
+      "Bash(npx supabase db push)",
+      "Bash(npx supabase:*)"
     ]
   }
 }

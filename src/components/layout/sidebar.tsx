@@ -14,6 +14,7 @@ import {
   LogOut,
   Sparkles,
   TreePine,
+  ChefHat,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/people', label: 'People', icon: Users },
   { href: '/tree', label: 'Family Tree', icon: GitBranch },
   { href: '/sources', label: 'Sources', icon: FileText },
+  { href: '/recipes', label: 'Recipes', icon: ChefHat },
   { href: '/suggestions', label: 'Suggestions', icon: Sparkles },
   { href: '/activity', label: 'Activity', icon: History },
 ]

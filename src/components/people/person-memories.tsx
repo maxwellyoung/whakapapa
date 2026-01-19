@@ -17,6 +17,9 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
+  Share2,
+  Link,
+  Check,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
@@ -143,6 +146,33 @@ export function PersonMemories({ person }: PersonMemoriesProps) {
 
     setMemories(memories.filter((m) => m.id !== memoryId))
     toast.success('Memory removed')
+  }
+
+  const handleShare = async (memoryId: string) => {
+    if (!currentWorkspace) return
+
+    const supabase = createClient()
+
+    // Create a shareable link
+    const { data, error } = await supabase
+      .from('shareable_links')
+      .insert({
+        workspace_id: currentWorkspace.id,
+        entity_type: 'memory',
+        entity_id: memoryId,
+      })
+      .select('token')
+      .single()
+
+    if (error) {
+      toast.error('Failed to create share link')
+      return
+    }
+
+    // Copy link to clipboard
+    const shareUrl = `${window.location.origin}/share/${data.token}`
+    await navigator.clipboard.writeText(shareUrl)
+    toast.success('Share link copied to clipboard!')
   }
 
   if (loading) {
@@ -325,6 +355,10 @@ export function PersonMemories({ person }: PersonMemoriesProps) {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleShare(memory.id)}>
+                            <Share2 className="h-4 w-4 mr-2" />
+                            Share
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDelete(memory.id)} className="text-red-600">
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete

@@ -323,6 +323,21 @@ export interface MemorialTribute {
   created_at: string
 }
 
+// Shareable links
+export interface ShareableLink {
+  id: string
+  workspace_id: string
+  entity_type: 'memory' | 'person'
+  entity_id: string
+  token: string
+  expires_at: string | null
+  password_hash: string | null
+  view_count: number
+  max_views: number | null
+  created_at: string
+  created_by: string | null
+}
+
 // Utility types
 export type WithTimestamps<T> = T & {
   created_at: string
