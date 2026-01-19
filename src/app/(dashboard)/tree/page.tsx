@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -19,11 +19,13 @@ import {
   Position,
   ConnectionLineType,
 } from 'reactflow'
+import dagre from '@dagrejs/dagre'
 import 'reactflow/dist/style.css'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Tooltip,
   TooltipContent,
@@ -38,6 +40,21 @@ import {
   ContextMenuSeparator,
 } from '@/components/ui/context-menu'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   ZoomIn,
   ZoomOut,
   Maximize,
@@ -47,20 +64,35 @@ import {
   Pencil,
   Users,
   User,
+  Search,
+  X,
+  MousePointer,
+  Unlink,
 } from 'lucide-react'
-import type { Person, Relationship } from '@/types'
+import type { Person, Relationship, RelationshipType } from '@/types'
 import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+
+// Relationship options for quick connect
+const QUICK_RELATIONSHIP_OPTIONS = [
+  { value: 'parent_child', label: 'Parent → Child', description: 'First person is parent' },
+  { value: 'spouse', label: 'Spouse / Partner', description: 'Marriage or partnership' },
+  { value: 'sibling', label: 'Sibling', description: 'Brothers or sisters' },
+] as const
 
 // Custom node component with photo and Apple-like styling
 function PersonNode({
   data,
-  selected
+  selected,
 }: {
   data: {
     label: string
     person: Person
     birthYear?: string
     deathYear?: string
+    highlighted?: boolean
+    dimmed?: boolean
   }
   selected?: boolean
 }) {
@@ -93,21 +125,23 @@ function PersonNode({
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className={`
-                group relative px-3 py-2.5
-                bg-white/95 dark:bg-stone-900/95
-                backdrop-blur-xl
-                rounded-2xl
-                border border-stone-200/80 dark:border-stone-700/80
-                shadow-sm
-                hover:shadow-lg hover:shadow-stone-200/50 dark:hover:shadow-stone-900/50
-                hover:border-stone-300 dark:hover:border-stone-600
-                hover:-translate-y-0.5
-                transition-all duration-200 ease-out
-                cursor-pointer
-                min-w-[140px]
-                ${selected ? 'ring-2 ring-blue-500/50 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 shadow-lg shadow-blue-500/10' : ''}
-              `}
+              className={cn(
+                'group relative px-3 py-2.5',
+                'bg-white/95 dark:bg-stone-900/95',
+                'backdrop-blur-xl',
+                'rounded-2xl',
+                'border border-stone-200/80 dark:border-stone-700/80',
+                'shadow-sm',
+                'hover:shadow-lg hover:shadow-stone-200/50 dark:hover:shadow-stone-900/50',
+                'hover:border-stone-300 dark:hover:border-stone-600',
+                'hover:-translate-y-0.5',
+                'transition-all duration-200 ease-out',
+                'cursor-pointer',
+                'min-w-[140px]',
+                selected && 'ring-2 ring-blue-500/50 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 shadow-lg shadow-blue-500/10',
+                data.highlighted && 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 shadow-lg shadow-amber-500/20',
+                data.dimmed && 'opacity-30'
+              )}
             >
               <div className="flex items-center gap-3">
                 {/* Profile photo or placeholder */}
@@ -209,187 +243,87 @@ function getRelationshipColor(type: string): string {
   }
 }
 
-// Improved tree layout with spouse grouping
-function layoutNodes(people: Person[], relationships: Relationship[]): { nodes: Node[], edges: Edge[] } {
+// Use dagre for better hierarchical layout
+function layoutNodesWithDagre(
+  people: Person[],
+  relationships: Relationship[]
+): { nodes: Node[]; edges: Edge[] } {
   if (people.length === 0) {
     return { nodes: [], edges: [] }
   }
 
-  // Build relationship maps
-  const parentChildMap = new Map<string, string[]>() // parent -> children
-  const childParentMap = new Map<string, string[]>() // child -> parents
-  const spouseMap = new Map<string, string[]>() // person -> spouses
-  const siblingMap = new Map<string, string[]>() // person -> siblings
+  const dagreGraph = new dagre.graphlib.Graph()
+  dagreGraph.setDefaultEdgeLabel(() => ({}))
+  dagreGraph.setGraph({
+    rankdir: 'TB', // Top to bottom
+    nodesep: 80,   // Horizontal spacing
+    ranksep: 120,  // Vertical spacing
+    marginx: 50,
+    marginy: 50,
+  })
 
+  const NODE_WIDTH = 180
+  const NODE_HEIGHT = 70
+
+  // Build relationship maps for spouse grouping
+  const spouseMap = new Map<string, string[]>()
   relationships.forEach(rel => {
-    if (rel.relationship_type === 'parent_child' ||
-        rel.relationship_type === 'adoptive_parent' ||
-        rel.relationship_type === 'step_parent' ||
-        rel.relationship_type === 'foster_parent' ||
-        rel.relationship_type === 'guardian') {
-      // person_a is parent, person_b is child
-      if (!parentChildMap.has(rel.person_a_id)) parentChildMap.set(rel.person_a_id, [])
-      parentChildMap.get(rel.person_a_id)!.push(rel.person_b_id)
-
-      if (!childParentMap.has(rel.person_b_id)) childParentMap.set(rel.person_b_id, [])
-      childParentMap.get(rel.person_b_id)!.push(rel.person_a_id)
-    } else if (rel.relationship_type === 'spouse' || rel.relationship_type === 'partner') {
+    if (rel.relationship_type === 'spouse' || rel.relationship_type === 'partner') {
       if (!spouseMap.has(rel.person_a_id)) spouseMap.set(rel.person_a_id, [])
       if (!spouseMap.has(rel.person_b_id)) spouseMap.set(rel.person_b_id, [])
       spouseMap.get(rel.person_a_id)!.push(rel.person_b_id)
       spouseMap.get(rel.person_b_id)!.push(rel.person_a_id)
-    } else if (rel.relationship_type === 'sibling') {
-      if (!siblingMap.has(rel.person_a_id)) siblingMap.set(rel.person_a_id, [])
-      if (!siblingMap.has(rel.person_b_id)) siblingMap.set(rel.person_b_id, [])
-      siblingMap.get(rel.person_a_id)!.push(rel.person_b_id)
-      siblingMap.get(rel.person_b_id)!.push(rel.person_a_id)
     }
   })
 
-  // Find root nodes (people with no parents)
-  const roots = people.filter(p => !childParentMap.has(p.id) || childParentMap.get(p.id)!.length === 0)
+  // Add nodes to dagre
+  people.forEach((person) => {
+    dagreGraph.setNode(person.id, { width: NODE_WIDTH, height: NODE_HEIGHT })
+  })
 
-  // Group spouses together
-  const spouseGroups = new Map<string, Set<string>>() // canonical id -> all ids in group
-  const personToGroup = new Map<string, string>() // person id -> canonical group id
-
-  people.forEach(person => {
-    if (personToGroup.has(person.id)) return
-
-    const spouses = spouseMap.get(person.id) || []
-    if (spouses.length > 0) {
-      const group = new Set<string>([person.id, ...spouses])
-      spouseGroups.set(person.id, group)
-      group.forEach(id => personToGroup.set(id, person.id))
-    } else {
-      spouseGroups.set(person.id, new Set([person.id]))
-      personToGroup.set(person.id, person.id)
+  // Add edges to dagre (only parent-child for hierarchy)
+  relationships.forEach((rel) => {
+    if (
+      rel.relationship_type === 'parent_child' ||
+      rel.relationship_type === 'adoptive_parent' ||
+      rel.relationship_type === 'step_parent' ||
+      rel.relationship_type === 'foster_parent' ||
+      rel.relationship_type === 'guardian'
+    ) {
+      dagreGraph.setEdge(rel.person_a_id, rel.person_b_id)
     }
   })
 
-  // Assign levels using BFS from roots
-  const levels = new Map<string, number>()
-  const visited = new Set<string>()
-  const queue: { id: string; level: number }[] = []
+  // Run the layout
+  dagre.layout(dagreGraph)
 
-  // Start from roots, but if no roots exist, start from first person
-  if (roots.length > 0) {
-    roots.forEach(root => queue.push({ id: root.id, level: 0 }))
-  } else if (people.length > 0) {
-    queue.push({ id: people[0].id, level: 0 })
-  }
+  // Create nodes with dagre positions
+  const personMap = new Map(people.map((p) => [p.id, p]))
+  const nodes: Node[] = people.map((person) => {
+    const nodeWithPosition = dagreGraph.node(person.id)
+    const birthYear = person.birth_date?.split('-')[0]
+    const deathYear = person.death_date?.split('-')[0]
 
-  while (queue.length > 0) {
-    const { id, level } = queue.shift()!
-    if (visited.has(id)) continue
-    visited.add(id)
-    levels.set(id, level)
-
-    // Spouses get same level
-    const spouses = spouseMap.get(id) || []
-    spouses.forEach(spouseId => {
-      if (!visited.has(spouseId)) {
-        queue.unshift({ id: spouseId, level }) // Process spouse next at same level
-      }
-    })
-
-    // Children get next level
-    const children = parentChildMap.get(id) || []
-    children.forEach(childId => {
-      if (!visited.has(childId)) {
-        queue.push({ id: childId, level: level + 1 })
-      }
-    })
-  }
-
-  // Handle disconnected nodes
-  people.forEach(p => {
-    if (!visited.has(p.id)) {
-      levels.set(p.id, 0)
+    return {
+      id: person.id,
+      type: 'person',
+      position: {
+        x: nodeWithPosition.x - NODE_WIDTH / 2,
+        y: nodeWithPosition.y - NODE_HEIGHT / 2,
+      },
+      data: {
+        label: person.preferred_name,
+        person,
+        birthYear,
+        deathYear,
+      },
     }
   })
 
-  // Group by level, keeping spouse groups together
-  const levelGroups = new Map<number, { group: string[], isCouple: boolean }[]>()
-  const processedGroups = new Set<string>()
-
-  people.forEach(p => {
-    const groupId = personToGroup.get(p.id)!
-    if (processedGroups.has(groupId)) return
-    processedGroups.add(groupId)
-
-    const group = spouseGroups.get(groupId)!
-    const groupArray = Array.from(group)
-    const level = levels.get(p.id) ?? 0
-
-    if (!levelGroups.has(level)) levelGroups.set(level, [])
-    levelGroups.get(level)!.push({
-      group: groupArray,
-      isCouple: groupArray.length > 1
-    })
-  })
-
-  // Create nodes with positions
-  const NODE_WIDTH = 180
-  const NODE_HEIGHT = 70
-  const HORIZONTAL_GAP = 60
-  const COUPLE_GAP = 16 // Small gap between spouses
-  const VERTICAL_GAP = 120
-
-  const nodes: Node[] = []
-  const nodePositions = new Map<string, { x: number; y: number }>()
-  const personMap = new Map(people.map(p => [p.id, p]))
-
-  levelGroups.forEach((groups, level) => {
-    // Calculate total width for this level
-    let totalWidth = 0
-    groups.forEach((group, idx) => {
-      if (group.isCouple) {
-        totalWidth += NODE_WIDTH * group.group.length + COUPLE_GAP * (group.group.length - 1)
-      } else {
-        totalWidth += NODE_WIDTH
-      }
-      if (idx < groups.length - 1) totalWidth += HORIZONTAL_GAP
-    })
-
-    let currentX = -totalWidth / 2
-    const y = level * (NODE_HEIGHT + VERTICAL_GAP)
-
-    groups.forEach((group, groupIdx) => {
-      group.group.forEach((personId, personIdx) => {
-        const person = personMap.get(personId)
-        if (!person) return
-
-        const birthYear = person.birth_date?.split('-')[0]
-        const deathYear = person.death_date?.split('-')[0]
-
-        const x = currentX
-        nodePositions.set(personId, { x, y })
-
-        nodes.push({
-          id: personId,
-          type: 'person',
-          position: { x, y },
-          data: {
-            label: person.preferred_name,
-            person,
-            birthYear,
-            deathYear,
-          },
-        })
-
-        currentX += NODE_WIDTH + (group.isCouple ? COUPLE_GAP : 0)
-      })
-
-      if (groupIdx < groups.length - 1) {
-        currentX += HORIZONTAL_GAP - (group.isCouple ? COUPLE_GAP : 0)
-      }
-    })
-  })
-
-  // Create edges with improved styling and proper handle connections
+  // Create edges with proper styling
   const edges: Edge[] = relationships.map((rel) => {
-    const isParentType = rel.relationship_type === 'parent_child' ||
+    const isParentType =
+      rel.relationship_type === 'parent_child' ||
       rel.relationship_type === 'adoptive_parent' ||
       rel.relationship_type === 'step_parent' ||
       rel.relationship_type === 'foster_parent' ||
@@ -399,10 +333,6 @@ function layoutNodes(people: Person[], relationships: Relationship[]): { nodes: 
     const isSiblingType = rel.relationship_type === 'sibling'
     const color = getRelationshipColor(rel.relationship_type)
 
-    // Determine handle connections based on relationship type
-    // Spouse/partner: connect horizontally (right to left)
-    // Parent/child: connect vertically (bottom to top)
-    // Sibling: connect horizontally (right to left)
     const sourceHandle = isParentType ? 'bottom' : 'right'
     const targetHandle = isParentType ? 'top' : 'left'
 
@@ -442,32 +372,98 @@ function TreeContent() {
   const [loading, setLoading] = useState(true)
   const [selectedNode, setSelectedNode] = useState<Node | null>(null)
   const [relationshipCount, setRelationshipCount] = useState(0)
-  const { fitView, zoomIn, zoomOut } = useReactFlow()
+  const [people, setPeople] = useState<Person[]>([])
+  const [relationships, setRelationships] = useState<Relationship[]>([])
+  const { fitView, zoomIn, zoomOut, setCenter } = useReactFlow()
 
+  // Connect mode state
+  const [connectMode, setConnectMode] = useState(false)
+  const [connectSource, setConnectSource] = useState<Node | null>(null)
+  const [connectDialogOpen, setConnectDialogOpen] = useState(false)
+  const [connectTarget, setConnectTarget] = useState<Node | null>(null)
+  const [selectedRelationType, setSelectedRelationType] = useState<string>('parent_child')
+  const [creating, setCreating] = useState(false)
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
+  // Keyboard navigation
+  const [focusedNodeIndex, setFocusedNodeIndex] = useState(-1)
+
+  // Filter nodes based on search
+  const filteredNodeIds = useMemo(() => {
+    if (!searchQuery.trim()) return null
+    const query = searchQuery.toLowerCase()
+    return new Set(
+      people
+        .filter(
+          (p) =>
+            p.preferred_name.toLowerCase().includes(query) ||
+            p.given_names?.toLowerCase().includes(query) ||
+            p.family_name?.toLowerCase().includes(query)
+        )
+        .map((p) => p.id)
+    )
+  }, [searchQuery, people])
+
+  // Update node highlighting based on search
+  useEffect(() => {
+    if (filteredNodeIds === null) {
+      // No search, clear all highlighting
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          data: { ...n.data, highlighted: false, dimmed: false },
+        }))
+      )
+    } else {
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          data: {
+            ...n.data,
+            highlighted: filteredNodeIds.has(n.id),
+            dimmed: !filteredNodeIds.has(n.id),
+          },
+        }))
+      )
+
+      // Focus on first result
+      if (filteredNodeIds.size > 0) {
+        const firstId = Array.from(filteredNodeIds)[0]
+        const node = nodes.find((n) => n.id === firstId)
+        if (node) {
+          setCenter(node.position.x + 90, node.position.y + 35, { zoom: 1, duration: 500 })
+        }
+      }
+    }
+  }, [filteredNodeIds, setNodes, setCenter])
+
+  // Fetch data
   useEffect(() => {
     async function fetchData() {
       if (!currentWorkspace) return
 
       const supabase = createClient()
 
-      const { data: people } = await supabase
-        .from('people')
-        .select('*')
-        .eq('workspace_id', currentWorkspace.id)
+      const [{ data: peopleData }, { data: relationshipsData }] = await Promise.all([
+        supabase.from('people').select('*').eq('workspace_id', currentWorkspace.id),
+        supabase.from('relationships').select('*').eq('workspace_id', currentWorkspace.id),
+      ])
 
-      const { data: relationships } = await supabase
-        .from('relationships')
-        .select('*')
-        .eq('workspace_id', currentWorkspace.id)
-
-      if (people) {
-        const { nodes: layoutedNodes, edges: layoutedEdges } = layoutNodes(
-          people,
-          relationships || []
+      if (peopleData) {
+        setPeople(peopleData)
+        const rels = relationshipsData || []
+        setRelationships(rels)
+        const { nodes: layoutedNodes, edges: layoutedEdges } = layoutNodesWithDagre(
+          peopleData,
+          rels
         )
         setNodes(layoutedNodes)
         setEdges(layoutedEdges)
-        setRelationshipCount(relationships?.length || 0)
+        setRelationshipCount(rels.length)
       }
 
       setLoading(false)
@@ -476,23 +472,151 @@ function TreeContent() {
     fetchData()
   }, [currentWorkspace, setNodes, setEdges])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Search shortcut
+      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+        e.preventDefault()
+        setSearchOpen(true)
+        setTimeout(() => searchInputRef.current?.focus(), 100)
+      }
+
+      // Escape to cancel connect mode or close search
+      if (e.key === 'Escape') {
+        if (connectMode) {
+          setConnectMode(false)
+          setConnectSource(null)
+          toast.info('Connection cancelled')
+        }
+        if (searchOpen) {
+          setSearchOpen(false)
+          setSearchQuery('')
+        }
+      }
+
+      // Arrow keys for navigation when not in input
+      if (
+        !searchOpen &&
+        !connectDialogOpen &&
+        (e.key === 'ArrowRight' || e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'ArrowDown')
+      ) {
+        e.preventDefault()
+        const sortedNodes = [...nodes].sort((a, b) => {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            return a.position.x - b.position.x
+          }
+          return a.position.y - b.position.y
+        })
+
+        if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          sortedNodes.reverse()
+        }
+
+        const currentIndex = focusedNodeIndex >= 0 ? focusedNodeIndex : -1
+        const nextIndex = (currentIndex + 1) % sortedNodes.length
+        setFocusedNodeIndex(nextIndex)
+
+        const node = sortedNodes[nextIndex]
+        if (node) {
+          setSelectedNode(node)
+          setCenter(node.position.x + 90, node.position.y + 35, { zoom: 1, duration: 300 })
+        }
+      }
+
+      // Enter to view selected node
+      if (e.key === 'Enter' && selectedNode && !searchOpen && !connectDialogOpen) {
+        router.push(`/people/${selectedNode.id}`)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [connectMode, searchOpen, connectDialogOpen, nodes, focusedNodeIndex, selectedNode, router, setCenter])
+
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
-      setSelectedNode(node)
+      if (connectMode) {
+        if (!connectSource) {
+          // First click - set source
+          setConnectSource(node)
+          toast.info(`Selected ${node.data.label}. Now click who to connect them to.`)
+        } else if (node.id !== connectSource.id) {
+          // Second click - open dialog to choose relationship type
+          setConnectTarget(node)
+          setConnectDialogOpen(true)
+        }
+      } else {
+        setSelectedNode(node)
+      }
     },
-    []
+    [connectMode, connectSource]
   )
 
   const onNodeDoubleClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
-      router.push(`/people/${node.id}`)
+      if (!connectMode) {
+        router.push(`/people/${node.id}`)
+      }
     },
-    [router]
+    [router, connectMode]
   )
 
   const onPaneClick = useCallback(() => {
-    setSelectedNode(null)
-  }, [])
+    if (!connectMode) {
+      setSelectedNode(null)
+    }
+  }, [connectMode])
+
+  // Create connection
+  const handleCreateConnection = async () => {
+    if (!currentWorkspace || !connectSource || !connectTarget) return
+
+    setCreating(true)
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from('relationships')
+      .insert({
+        workspace_id: currentWorkspace.id,
+        person_a_id: connectSource.id,
+        person_b_id: connectTarget.id,
+        relationship_type: selectedRelationType,
+      })
+      .select()
+      .single()
+
+    setCreating(false)
+
+    if (error) {
+      if (error.code === '23505') {
+        toast.error('These people are already connected')
+      } else {
+        toast.error('Failed to create connection')
+      }
+      return
+    }
+
+    // Add the new relationship and re-layout
+    const newRelationships = [...relationships, data]
+    setRelationships(newRelationships)
+    const { nodes: layoutedNodes, edges: layoutedEdges } = layoutNodesWithDagre(
+      people,
+      newRelationships
+    )
+    setNodes(layoutedNodes)
+    setEdges(layoutedEdges)
+    setRelationshipCount(newRelationships.length)
+
+    toast.success(`Connected ${connectSource.data.label} and ${connectTarget.data.label}`)
+
+    // Reset connect state
+    setConnectDialogOpen(false)
+    setConnectSource(null)
+    setConnectTarget(null)
+    setConnectMode(false)
+    setSelectedRelationType('parent_child')
+  }
 
   if (loading) {
     return (
@@ -501,7 +625,9 @@ function TreeContent() {
           <div className="relative">
             <div className="h-12 w-12 animate-spin rounded-full border-3 border-stone-200 border-t-indigo-500 dark:border-stone-700 dark:border-t-indigo-400" />
           </div>
-          <span className="text-sm font-medium text-stone-500 dark:text-stone-400">Loading family tree...</span>
+          <span className="text-sm font-medium text-stone-500 dark:text-stone-400">
+            Loading family tree...
+          </span>
         </div>
       </div>
     )
@@ -526,7 +652,8 @@ function TreeContent() {
             Your family tree will appear here
           </h2>
           <p className="text-sm text-stone-500 dark:text-stone-400 mb-8 leading-relaxed">
-            Add family members and connect them with relationships to see your whakapapa come to life as an interactive tree.
+            Add family members and connect them with relationships to see your whakapapa come to
+            life as an interactive tree.
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/people/new">
@@ -551,9 +678,44 @@ function TreeContent() {
 
   return (
     <div className="h-full relative bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
+      {/* Connect mode banner */}
+      <AnimatePresence>
+        {connectMode && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-4 left-1/2 -translate-x-1/2 z-30"
+          >
+            <div className="bg-indigo-600 text-white rounded-xl px-4 py-3 shadow-lg flex items-center gap-3">
+              <LinkIcon className="w-5 h-5" />
+              <div>
+                <p className="font-medium">
+                  {connectSource
+                    ? `Click who to connect "${connectSource.data.label}" to`
+                    : 'Click the first person to connect'}
+                </p>
+                <p className="text-xs text-indigo-200">Press Escape to cancel</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setConnectMode(false)
+                  setConnectSource(null)
+                }}
+                className="text-white hover:bg-indigo-700"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Relationship hint banner */}
       <AnimatePresence>
-        {showRelationshipHint && (
+        {showRelationshipHint && !connectMode && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -569,9 +731,48 @@ function TreeContent() {
                   Connect your family members
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-400">
-                  Click a person, then &quot;Add relationship&quot; to link them
+                  Click &quot;Connect&quot; below to start linking people
                 </p>
               </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Search bar */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-4 left-4 z-30"
+          >
+            <div className="flex items-center gap-2 bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-3 py-2">
+              <Search className="h-4 w-4 text-stone-400" />
+              <Input
+                ref={searchInputRef}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search people..."
+                className="border-0 bg-transparent focus-visible:ring-0 h-8 w-48"
+              />
+              {searchQuery && (
+                <span className="text-xs text-stone-400">
+                  {filteredNodeIds?.size || 0} found
+                </span>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchOpen(false)
+                  setSearchQuery('')
+                }}
+                className="h-7 w-7 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </motion.div>
         )}
@@ -599,12 +800,7 @@ function TreeContent() {
                 style: { strokeWidth: 2 },
               }}
             >
-              <Background
-                gap={24}
-                size={1.5}
-                color="#d6d3d1"
-                className="dark:opacity-20"
-              />
+              <Background gap={24} size={1.5} color="#d6d3d1" className="dark:opacity-20" />
               <MiniMap
                 nodeColor={() => '#a8a29e'}
                 maskColor="rgba(0, 0, 0, 0.08)"
@@ -612,35 +808,73 @@ function TreeContent() {
                 style={{ width: 120, height: 80 }}
               />
 
-              {/* Elegant Controls */}
-              <Panel position="top-left" className="flex gap-1.5">
+              {/* Controls */}
+              <Panel position="top-left" className="flex flex-col gap-1.5">
+                <div className="flex gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => zoomIn()}
+                    className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                  >
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => zoomOut()}
+                    className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                  >
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => fitView({ padding: 0.3 })}
+                    className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                  >
+                    <Maximize className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      setSearchOpen(true)
+                      setTimeout(() => searchInputRef.current?.focus(), 100)
+                    }}
+                    className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Connect mode toggle */}
                 <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => zoomIn()}
-                  className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
+                  variant={connectMode ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => {
+                    if (connectMode) {
+                      setConnectMode(false)
+                      setConnectSource(null)
+                    } else {
+                      setConnectMode(true)
+                      setSelectedNode(null)
+                      toast.info('Click two people to connect them')
+                    }
+                  }}
+                  className={cn(
+                    'gap-2',
+                    connectMode
+                      ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                      : 'bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800'
+                  )}
                 >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => zoomOut()}
-                  className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => fitView({ padding: 0.3 })}
-                  className="h-9 w-9 bg-white/90 dark:bg-stone-900/90 backdrop-blur-sm shadow-sm border-stone-200/80 dark:border-stone-700/80 hover:bg-white dark:hover:bg-stone-800"
-                >
-                  <Maximize className="h-4 w-4" />
+                  {connectMode ? <Unlink className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
+                  {connectMode ? 'Cancel' : 'Connect'}
                 </Button>
               </Panel>
 
-              {/* Add Person Button - responsive positioning */}
+              {/* Add Person Button */}
               <Panel position="top-right" className="md:!top-[120px]">
                 <Link href="/people/new">
                   <Button
@@ -660,25 +894,37 @@ function TreeContent() {
             <UserPlus className="h-4 w-4" />
             Add new person
           </ContextMenuItem>
+          <ContextMenuItem
+            onClick={() => {
+              setConnectMode(true)
+              toast.info('Click two people to connect them')
+            }}
+            className="gap-2"
+          >
+            <LinkIcon className="h-4 w-4" />
+            Connect people
+          </ContextMenuItem>
           <ContextMenuSeparator />
           <ContextMenuItem onClick={() => fitView({ padding: 0.3 })} className="gap-2">
             <Maximize className="h-4 w-4" />
             Fit to view
           </ContextMenuItem>
-          <ContextMenuItem onClick={() => zoomIn()} className="gap-2">
-            <ZoomIn className="h-4 w-4" />
-            Zoom in
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => zoomOut()} className="gap-2">
-            <ZoomOut className="h-4 w-4" />
-            Zoom out
+          <ContextMenuItem
+            onClick={() => {
+              setSearchOpen(true)
+              setTimeout(() => searchInputRef.current?.focus(), 100)
+            }}
+            className="gap-2"
+          >
+            <Search className="h-4 w-4" />
+            Search people
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
 
       {/* Selected Person Actions - Floating pill */}
       <AnimatePresence>
-        {selectedNode && (
+        {selectedNode && !connectMode && (
           <motion.div
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -710,18 +956,22 @@ function TreeContent() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => router.push(`/people/${selectedNode.id}/relationships/new`)}
+                onClick={() => {
+                  setConnectMode(true)
+                  setConnectSource(selectedNode)
+                  toast.info(`Now click who to connect "${selectedNode.data.label}" to`)
+                }}
                 className="rounded-full h-9 px-4 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400"
               >
                 <LinkIcon className="mr-2 h-4 w-4" />
-                Add relationship
+                Connect
               </Button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Relationship Legend - Minimalist - hidden on mobile, shown on md+ */}
+      {/* Relationship Legend - hidden on mobile */}
       <div className="hidden md:block absolute top-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3 z-20">
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
@@ -736,7 +986,15 @@ function TreeContent() {
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
               <svg width="20" height="8" viewBox="0 0 20 8">
-                <line x1="0" y1="4" x2="20" y2="4" stroke="#ec4899" strokeWidth="3" strokeDasharray="6,3" />
+                <line
+                  x1="0"
+                  y1="4"
+                  x2="20"
+                  y2="4"
+                  stroke="#ec4899"
+                  strokeWidth="3"
+                  strokeDasharray="6,3"
+                />
               </svg>
             </div>
             <span className="text-xs text-stone-600 dark:text-stone-400">Partner</span>
@@ -744,29 +1002,99 @@ function TreeContent() {
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
               <svg width="20" height="8" viewBox="0 0 20 8">
-                <line x1="0" y1="4" x2="20" y2="4" stroke="#10b981" strokeWidth="2" strokeDasharray="3,3" />
+                <line
+                  x1="0"
+                  y1="4"
+                  x2="20"
+                  y2="4"
+                  stroke="#10b981"
+                  strokeWidth="2"
+                  strokeDasharray="3,3"
+                />
               </svg>
             </div>
             <span className="text-xs text-stone-600 dark:text-stone-400">Sibling</span>
           </div>
         </div>
+        <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700">
+          <p className="text-[10px] text-stone-400 dark:text-stone-500">
+            ⌘F to search · Arrow keys to navigate
+          </p>
+        </div>
       </div>
 
-      {/* Mobile legend - compact horizontal version at bottom */}
+      {/* Mobile legend */}
       <div className="md:hidden absolute bottom-20 left-4 right-4 flex justify-center gap-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-2 z-10">
         <div className="flex items-center gap-1.5">
           <div className="w-4 h-0.5 bg-indigo-500 rounded-full" />
           <span className="text-[10px] text-stone-500 dark:text-stone-400">Parent</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-0.5 bg-pink-500 rounded-full" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #ec4899, #ec4899 3px, transparent 3px, transparent 5px)' }} />
+          <div
+            className="w-4 h-0.5 bg-pink-500 rounded-full"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(90deg, #ec4899, #ec4899 3px, transparent 3px, transparent 5px)',
+            }}
+          />
           <span className="text-[10px] text-stone-500 dark:text-stone-400">Partner</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-4 h-0.5 bg-emerald-500 rounded-full" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #10b981, #10b981 2px, transparent 2px, transparent 4px)' }} />
+          <div
+            className="w-4 h-0.5 bg-emerald-500 rounded-full"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(90deg, #10b981, #10b981 2px, transparent 2px, transparent 4px)',
+            }}
+          />
           <span className="text-[10px] text-stone-500 dark:text-stone-400">Sibling</span>
         </div>
       </div>
+
+      {/* Connect dialog */}
+      <Dialog open={connectDialogOpen} onOpenChange={setConnectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Connect family members</DialogTitle>
+            <DialogDescription>
+              How are {connectSource?.data.label} and {connectTarget?.data.label} related?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={selectedRelationType} onValueChange={setSelectedRelationType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select relationship" />
+              </SelectTrigger>
+              <SelectContent>
+                {QUICK_RELATIONSHIP_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-muted-foreground">{option.description}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConnectDialogOpen(false)
+                setConnectSource(null)
+                setConnectTarget(null)
+                setConnectMode(false)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleCreateConnection} disabled={creating}>
+              {creating ? 'Connecting...' : 'Connect'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
