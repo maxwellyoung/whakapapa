@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { TreePine, ArrowRight, Sparkles } from 'lucide-react'
+import { TreePine, ArrowRight, Sparkles, LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
@@ -41,12 +41,15 @@ export function CreateWorkspace() {
     if (error) {
       // Provide friendly error messages
       let errorText = "We couldn't create your family tree. Please try again."
+      let errorDescription = ''
       if (error.message.includes('duplicate')) {
-        errorText = 'A workspace with this name already exists. Please try a different name.'
+        errorText = 'This name is already taken'
+        errorDescription = 'A workspace with this URL already exists. If this is your workspace, try signing out and back in. Otherwise, try a different name.'
       } else if (error.message.includes('permission')) {
-        errorText = "You don't have permission to create a workspace. Please sign in again."
+        errorText = "You don't have permission to create a workspace."
+        errorDescription = 'Your session may have expired. Please sign in again.'
       }
-      toast.error(errorText)
+      toast.error(errorText, { description: errorDescription || undefined })
       setCreating(false)
       return
     }
@@ -182,6 +185,27 @@ export function CreateWorkspace() {
           <br />
           Only people you invite can see it.
         </motion.p>
+
+        {/* Sign out link - helps users who have an existing workspace but stale session */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8, duration: 0.4 }}
+          className="mt-6 text-center"
+        >
+          <button
+            type="button"
+            onClick={async () => {
+              const supabase = createClient()
+              await supabase.auth.signOut()
+              router.push('/login')
+            }}
+            className="inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign out and use a different account
+          </button>
+        </motion.div>
       </motion.div>
     </div>
   )

@@ -10,6 +10,7 @@ interface WorkspaceContextType {
   currentMembership: Membership | null
   userRole: UserRole | null
   loading: boolean
+  error: string | null
   setCurrentWorkspaceId: (id: string) => void
   refresh: () => Promise<void>
 }
@@ -23,16 +24,33 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [memberships, setMemberships] = useState<Membership[]>([])
   const [currentWorkspaceId, setCurrentWorkspaceIdState] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchWorkspaces = useCallback(async () => {
     const supabase = createClient()
 
-    const { data: membershipData } = await supabase
+    const { data: membershipData, error } = await supabase
       .from('memberships')
       .select(`
         *,
         workspaces (*)
       `)
+
+    if (error) {
+      console.error('Failed to fetch workspaces:', error.message)
+      // Check if this is an auth issue
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        console.error('No authenticated user - session may have expired')
+        setError('Your session has expired. Please sign in again.')
+      } else {
+        setError('Unable to load your workspaces. Please try refreshing the page.')
+      }
+      setLoading(false)
+      return
+    }
+
+    setError(null)
 
     if (membershipData) {
       const ws = membershipData
@@ -79,6 +97,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         currentMembership,
         userRole,
         loading,
+        error,
         setCurrentWorkspaceId,
         refresh: fetchWorkspaces,
       }}
