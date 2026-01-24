@@ -137,7 +137,7 @@ export default function LoginPage() {
             )}
             Continue with Google
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             onClick={() => handleOAuthLogin('facebook')}
             disabled={oauthLoading !== null}
@@ -162,7 +162,7 @@ export default function LoginPage() {
               <AppleIcon className="mr-2 h-5 w-5" />
             )}
             Continue with Apple
-          </Button>
+          </Button> */}
         </div>
 
         <div className="relative">
