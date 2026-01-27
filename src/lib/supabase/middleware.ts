@@ -34,10 +34,12 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Protected routes
+  const isHome = request.nextUrl.pathname === '/'
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login')
   const isInviteRoute = request.nextUrl.pathname.startsWith('/invite')
   const isAuthCallback = request.nextUrl.pathname.startsWith('/auth/callback')
-  const isPublicRoute = isAuthRoute || isInviteRoute || isAuthCallback
+  const isShareRoute = request.nextUrl.pathname.startsWith('/share')
+  const isPublicRoute = isHome || isAuthRoute || isInviteRoute || isAuthCallback || isShareRoute
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
