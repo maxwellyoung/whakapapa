@@ -1,10 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Newsreader } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-sans",
+});
+
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-serif",
 });
 
 export const metadata: Metadata = {
@@ -50,7 +56,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.variable} ${newsreader.variable} antialiased`}>
         {children}
         <Toaster richColors position="bottom-right" />
         <ServiceWorkerRegistration />
