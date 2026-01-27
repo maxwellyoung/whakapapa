@@ -1,52 +1,18 @@
 'use client'
 
-import { motion, useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { motion, useInView, useScroll, useTransform } from 'framer-motion'
+import { useRef, useMemo } from 'react'
 import Link from 'next/link'
-import {
-  Brain,
-  TreePine,
-  BookOpen,
-  Mic,
-  ScanText,
-  FileDown,
-  Share2,
-  FolderTree,
-  ArrowRight,
-  Github,
-  Heart,
-} from 'lucide-react'
+import { Github } from 'lucide-react'
 
-// ─── Animation variants ────────────────────────────────────────
+// ─── Motion constants ──────────────────────────────────────────
+// Kowalski: spring-based, every transition intentional
+const spring = { type: 'spring' as const, stiffness: 100, damping: 30 }
+const gentleFade = { type: 'spring' as const, stiffness: 80, damping: 30 }
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
-}
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-}
-
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1,
-    },
-  },
-}
-
-const featureCard = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0 },
-}
-
-// ─── Animated section wrapper ──────────────────────────────────
-
-function AnimatedSection({
+// ─── Scroll-reveal wrapper ─────────────────────────────────────
+// Alexander: composable pattern — same structure, different content
+function Reveal({
   children,
   className = '',
   delay = 0,
@@ -56,303 +22,547 @@ function AnimatedSection({
   delay?: number
 }) {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-60px' })
-
-  return (
-    <motion.section
-      ref={ref}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-      variants={fadeUp}
-      transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay }}
-      className={className}
-    >
-      {children}
-    </motion.section>
-  )
-}
-
-// ─── Features data ─────────────────────────────────────────────
-
-const features = [
-  {
-    icon: Brain,
-    title: 'AI-Powered Extraction',
-    description:
-      'Scan documents, photos, and letters — Claude AI extracts people, dates, and relationships automatically.',
-  },
-  {
-    icon: TreePine,
-    title: 'Interactive Family Tree',
-    description:
-      'Explore your lineage through a beautiful visual tree. Zoom, pan, and discover connections.',
-  },
-  {
-    icon: BookOpen,
-    title: 'Memories & Stories',
-    description:
-      'Record the stories that matter — quotes, recipes, traditions, and the moments that shaped your family.',
-  },
-  {
-    icon: Mic,
-    title: 'Voice Recording',
-    description:
-      "Capture stories in your loved ones' own voice. Some things are best heard, not read.",
-  },
-  {
-    icon: ScanText,
-    title: 'Document Scanning',
-    description:
-      'Point your camera at old documents and photos. Built-in OCR reads handwriting and printed text.',
-  },
-  {
-    icon: FileDown,
-    title: 'GEDCOM Import',
-    description:
-      'Already started elsewhere? Import your family tree from Ancestry, MyHeritage, or any GEDCOM-compatible tool.',
-  },
-  {
-    icon: Share2,
-    title: 'Shareable Links',
-    description:
-      'Share memories and stories with family members through simple, private links.',
-  },
-  {
-    icon: FolderTree,
-    title: 'Multi-Workspace',
-    description:
-      'Keep separate family lines organised in their own spaces. Your whakapapa, your way.',
-  },
-]
-
-// ─── Main component ────────────────────────────────────────────
-
-export function LandingPage() {
-  return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-      {/* ── Navigation ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-[var(--border)]">
-        <div className="mx-auto max-w-5xl px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-xl" role="img" aria-label="leaf">🌿</span>
-            <span className="font-serif text-xl font-semibold tracking-tight text-[var(--foreground)]">
-              Whakapapa
-            </span>
-          </Link>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-medium
-              bg-[var(--accent)] text-white shadow-sm
-              hover:opacity-90 transition-opacity duration-200
-              active:scale-[0.98] active:transition-none"
-          >
-            Sign in
-          </Link>
-        </div>
-      </nav>
-
-      {/* ── Hero ── */}
-      <header className="pt-32 pb-20 px-6 md:pt-44 md:pb-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-            className="mb-6"
-          >
-            <span className="text-5xl md:text-6xl" role="img" aria-label="leaf">🌿</span>
-          </motion.div>
-
-          <motion.h1
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.1 }}
-            className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight text-balance leading-[1.1] mb-6"
-          >
-            Preserve your family&rsquo;s stories, relationships, and history.
-          </motion.h1>
-
-          <motion.p
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.2 }}
-            className="text-lg md:text-xl text-[var(--muted-foreground)] leading-relaxed max-w-2xl mx-auto mb-10"
-          >
-            An AI-powered family knowledge base that helps you collect, connect, and cherish
-            the people and moments that make your family unique.
-          </motion.p>
-
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.3 }}
-          >
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-medium
-                bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20
-                hover:shadow-lg hover:shadow-[var(--accent)]/25 hover:opacity-95
-                transition-all duration-200
-                active:scale-[0.98] active:transition-none"
-            >
-              Get started
-              <ArrowRight className="size-4" />
-            </Link>
-          </motion.div>
-        </div>
-      </header>
-
-      {/* ── Decorative divider ── */}
-      <div className="flex items-center justify-center gap-3 pb-16 md:pb-24 text-[var(--border)]">
-        <div className="h-px w-12 bg-[var(--border)]" />
-        <span className="text-xs tracking-[0.2em] uppercase text-[var(--muted-foreground)] font-medium">
-          What you can do
-        </span>
-        <div className="h-px w-12 bg-[var(--border)]" />
-      </div>
-
-      {/* ── Features ── */}
-      <section className="px-6 pb-20 md:pb-28">
-        <div className="mx-auto max-w-5xl">
-          <AnimatedSection className="text-center mb-14">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-              Everything your family story needs
-            </h2>
-            <p className="text-[var(--muted-foreground)] text-lg max-w-xl mx-auto">
-              From scanning old letters to recording grandma&rsquo;s recipes — all in one place.
-            </p>
-          </AnimatedSection>
-
-          <FeaturesGrid />
-        </div>
-      </section>
-
-      {/* ── About the name ── */}
-      <section className="px-6 pb-20 md:pb-28">
-        <AnimatedSection>
-          <div className="mx-auto max-w-3xl">
-            <div className="surface-raised p-8 md:p-12 text-center">
-              <div className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium tracking-wide uppercase
-                bg-[var(--accent)]/10 text-[var(--accent)] mb-6 border border-[var(--accent)]/20">
-                About the name
-              </div>
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold tracking-tight mb-6">
-                Whakapapa
-              </h2>
-              <p className="text-sm text-[var(--muted-foreground)] italic mb-6 tracking-wide">
-                /fa·ka·pa·pa/
-              </p>
-              <div className="space-y-4 text-[var(--foreground)]/80 leading-relaxed max-w-xl mx-auto text-left md:text-center">
-                <p>
-                  In te ao Māori — the Māori worldview — <em className="font-serif not-italic font-medium text-[var(--foreground)]">whakapapa</em> is
-                  far more than a family tree. It is the foundational concept of genealogy, identity, and belonging.
-                </p>
-                <p>
-                  Whakapapa traces the connections between all living things — from the gods of the natural world,
-                  through ancestors, to the people standing here today. It answers the most human question:
-                  <em className="font-serif not-italic font-medium text-[var(--foreground)]"> where do I come from?</em>
-                </p>
-                <p>
-                  We chose this name with deep respect for te reo Māori and the culture from which it originates,
-                  as a reminder that genealogy is not just data — it is the living fabric of who we are.
-                </p>
-              </div>
-            </div>
-          </div>
-        </AnimatedSection>
-      </section>
-
-      {/* ── CTA ── */}
-      <section className="px-6 pb-24 md:pb-32">
-        <AnimatedSection>
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold tracking-tight mb-4">
-              Start preserving your family&rsquo;s story
-            </h2>
-            <p className="text-[var(--muted-foreground)] text-lg mb-8 max-w-lg mx-auto">
-              Every family has stories worth keeping. Yours is no exception.
-            </p>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-xl px-7 py-3.5 text-base font-medium
-                bg-[var(--accent)] text-white shadow-md shadow-[var(--accent)]/20
-                hover:shadow-lg hover:shadow-[var(--accent)]/25 hover:opacity-95
-                transition-all duration-200
-                active:scale-[0.98] active:transition-none"
-            >
-              Begin your whakapapa
-              <ArrowRight className="size-4" />
-            </Link>
-          </div>
-        </AnimatedSection>
-      </section>
-
-      {/* ── Footer ── */}
-      <footer className="border-t border-[var(--border)] px-6 py-8">
-        <div className="mx-auto max-w-5xl flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-[var(--muted-foreground)]">
-          <div className="flex items-center gap-2">
-            <span role="img" aria-label="leaf">🌿</span>
-            <span className="font-serif font-medium text-[var(--foreground)]">Whakapapa</span>
-            <span className="text-[var(--border)]">·</span>
-            <span>Open source under MIT</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-1.5">
-              Made with <Heart className="size-3.5 text-[var(--accent)] fill-[var(--accent)]" /> in Aotearoa
-            </span>
-            <a
-              href="https://github.com/maxwellyoung/whakapapa"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 hover:text-[var(--foreground)] transition-colors"
-            >
-              <Github className="size-4" />
-              GitHub
-            </a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  )
-}
-
-// ─── Features grid (separate for in-view animation) ────────────
-
-function FeaturesGrid() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-40px' })
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
 
   return (
     <motion.div
       ref={ref}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'hidden'}
-      variants={staggerContainer}
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      initial={{ opacity: 0, y: 10 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+      transition={{ ...spring, delay }}
+      className={className}
     >
-      {features.map((feature) => (
-        <motion.div
-          key={feature.title}
-          variants={featureCard}
-          transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
-          className="group surface p-5 hover:shadow-md transition-shadow duration-300"
-        >
-          <div className="mb-3 inline-flex items-center justify-center size-10 rounded-xl
-            bg-[var(--accent)]/10 text-[var(--accent)]
-            group-hover:bg-[var(--accent)]/15 transition-colors duration-300">
-            <feature.icon className="size-5" />
-          </div>
-          <h3 className="font-medium text-sm mb-1.5 text-[var(--foreground)]">
-            {feature.title}
-          </h3>
-          <p className="text-xs text-[var(--muted-foreground)] leading-relaxed">
-            {feature.description}
-          </p>
-        </motion.div>
-      ))}
+      {children}
     </motion.div>
+  )
+}
+
+// ─── Abstract visuals for each narrative section ───────────────
+
+// "Scan" — lines of text floating up and reorganizing
+function ScanVisual() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
+
+  const lines = useMemo(
+    () => [
+      { width: '70%', delay: 0 },
+      { width: '55%', delay: 0.1 },
+      { width: '80%', delay: 0.2 },
+      { width: '40%', delay: 0.3 },
+      { width: '65%', delay: 0.4 },
+      { width: '50%', delay: 0.5 },
+    ],
+    []
+  )
+
+  return (
+    <div ref={ref} className="relative h-48 md:h-56 flex items-center justify-center">
+      {/* Source "document" — faded lines on the left */}
+      <div className="absolute left-1/2 -translate-x-[140%] md:-translate-x-[160%] flex flex-col gap-2 opacity-30">
+        {lines.map((line, i) => (
+          <motion.div
+            key={`src-${i}`}
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 0.3 } : { opacity: 0 }}
+            transition={{ ...gentleFade, delay: line.delay }}
+            className="h-[3px] rounded-full bg-[var(--foreground)]"
+            style={{ width: line.width === '80%' ? '64px' : line.width === '70%' ? '56px' : line.width === '65%' ? '52px' : line.width === '55%' ? '44px' : line.width === '50%' ? '40px' : '32px' }}
+          />
+        ))}
+      </div>
+
+      {/* Extracted structured lines — float into position */}
+      <div className="flex flex-col gap-2.5 items-start">
+        {lines.map((line, i) => (
+          <motion.div
+            key={`dest-${i}`}
+            initial={{ opacity: 0, x: -20, y: 8 }}
+            animate={
+              isInView
+                ? { opacity: [0, 0.6, 1], x: 0, y: 0 }
+                : { opacity: 0, x: -20, y: 8 }
+            }
+            transition={{
+              ...spring,
+              delay: 0.3 + line.delay * 0.8,
+              opacity: { duration: 0.8, delay: 0.3 + line.delay * 0.8 },
+            }}
+            className="h-[3px] rounded-full"
+            style={{
+              width: line.width,
+              maxWidth: '120px',
+              background: i === 0 ? 'var(--foreground)' : 'var(--muted-foreground)',
+              opacity: i === 0 ? 1 : 0.5,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// "Listen" — waveform bars
+function ListenVisual() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
+
+  const bars = useMemo(() => {
+    const heights = [20, 35, 50, 30, 60, 45, 25, 55, 40, 20, 48, 32, 58, 28, 42, 50, 22, 38, 55, 30, 45, 35, 52, 25]
+    return heights.map((h, i) => ({ height: h, delay: i * 0.03 }))
+  }, [])
+
+  return (
+    <div ref={ref} className="h-48 md:h-56 flex items-center justify-center">
+      <div className="flex items-center gap-[3px]">
+        {bars.map((bar, i) => (
+          <motion.div
+            key={i}
+            initial={{ height: 3, opacity: 0 }}
+            animate={
+              isInView
+                ? {
+                    height: [3, bar.height * 0.7, bar.height, bar.height * 0.8, bar.height],
+                    opacity: 1,
+                  }
+                : { height: 3, opacity: 0 }
+            }
+            transition={{
+              height: {
+                type: 'spring',
+                stiffness: 120,
+                damping: 15,
+                delay: 0.2 + bar.delay,
+              },
+              opacity: { duration: 0.3, delay: 0.2 + bar.delay },
+            }}
+            className="w-[3px] rounded-full bg-[var(--foreground)]"
+            style={{ opacity: isInView ? (0.3 + (bar.height / 60) * 0.7) : 0 }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// "Connect" — tree nodes with drawing lines
+function ConnectVisual() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
+
+  return (
+    <div ref={ref} className="h-48 md:h-56 flex items-center justify-center">
+      <svg
+        viewBox="0 0 240 160"
+        className="w-full max-w-[240px] h-auto"
+        fill="none"
+      >
+        {/* Lines connecting nodes */}
+        {[
+          { d: 'M120 30 L60 75', delay: 0.4 },
+          { d: 'M120 30 L180 75', delay: 0.5 },
+          { d: 'M60 75 L40 130', delay: 0.7 },
+          { d: 'M60 75 L90 130', delay: 0.8 },
+          { d: 'M180 75 L155 130', delay: 0.9 },
+          { d: 'M180 75 L205 130', delay: 1.0 },
+        ].map((line, i) => (
+          <motion.path
+            key={i}
+            d={line.d}
+            stroke="var(--muted-foreground)"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={
+              isInView
+                ? { pathLength: 1, opacity: 0.3 }
+                : { pathLength: 0, opacity: 0 }
+            }
+            transition={{
+              pathLength: { type: 'spring', stiffness: 50, damping: 20, delay: line.delay },
+              opacity: { duration: 0.3, delay: line.delay },
+            }}
+          />
+        ))}
+
+        {/* Nodes */}
+        {[
+          { cx: 120, cy: 30, r: 8, delay: 0.2, primary: true },
+          { cx: 60, cy: 75, r: 6, delay: 0.5, primary: false },
+          { cx: 180, cy: 75, r: 6, delay: 0.6, primary: false },
+          { cx: 40, cy: 130, r: 5, delay: 0.8, primary: false },
+          { cx: 90, cy: 130, r: 5, delay: 0.9, primary: false },
+          { cx: 155, cy: 130, r: 5, delay: 1.0, primary: false },
+          { cx: 205, cy: 130, r: 5, delay: 1.1, primary: false },
+        ].map((node, i) => (
+          <motion.circle
+            key={i}
+            cx={node.cx}
+            cy={node.cy}
+            r={node.r}
+            fill={node.primary ? 'var(--foreground)' : 'var(--muted-foreground)'}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={
+              isInView
+                ? { scale: 1, opacity: node.primary ? 1 : 0.5 }
+                : { scale: 0, opacity: 0 }
+            }
+            transition={{
+              type: 'spring',
+              stiffness: 200,
+              damping: 20,
+              delay: node.delay,
+            }}
+          />
+        ))}
+      </svg>
+    </div>
+  )
+}
+
+// "Share" — concentric ripple circles
+function ShareVisual() {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-80px' })
+
+  return (
+    <div ref={ref} className="h-48 md:h-56 flex items-center justify-center">
+      <div className="relative">
+        {/* Center dot */}
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={isInView ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+          transition={{ ...spring, delay: 0.2 }}
+          className="w-3 h-3 rounded-full bg-[var(--foreground)] relative z-10"
+        />
+
+        {/* Ripple rings */}
+        {[0, 1, 2, 3].map((i) => (
+          <motion.div
+            key={i}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={
+              isInView
+                ? { scale: 1, opacity: [0, 0.4 - i * 0.08, 0.3 - i * 0.06] }
+                : { scale: 0, opacity: 0 }
+            }
+            transition={{
+              scale: {
+                type: 'spring',
+                stiffness: 60,
+                damping: 20,
+                delay: 0.4 + i * 0.15,
+              },
+              opacity: {
+                duration: 1,
+                delay: 0.4 + i * 0.15,
+              },
+            }}
+            className="absolute rounded-full border border-[var(--foreground)]"
+            style={{
+              width: `${(i + 1) * 56}px`,
+              height: `${(i + 1) * 56}px`,
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Narrative section — Alexander's pattern language ──────────
+// Same structure, different content. Composable. Organic.
+function NarrativeSection({
+  title,
+  description,
+  visual,
+  index,
+}: {
+  title: string
+  description: string
+  visual: React.ReactNode
+  index: number
+}) {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-60px' })
+
+  return (
+    <section
+      ref={ref}
+      className="min-h-[70vh] md:min-h-[80vh] flex flex-col items-center justify-center px-6 py-24 md:py-32 relative"
+    >
+      {/* Subtle top border — not a card, just a breath */}
+      {index > 0 && (
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-px bg-[var(--border)]" />
+      )}
+
+      <div className="max-w-lg mx-auto text-center">
+        {/* Visual first — let it speak */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ ...gentleFade, delay: 0.1 }}
+          className="mb-12"
+        >
+          {visual}
+        </motion.div>
+
+        {/* Title — one word, Newsreader, large */}
+        <motion.h2
+          initial={{ opacity: 0, y: 8 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+          transition={{ ...spring, delay: 0.2 }}
+          className="font-serif text-3xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-4"
+          style={{ color: 'var(--foreground)' }}
+        >
+          {title}
+        </motion.h2>
+
+        {/* Description — one sentence, Inter, muted */}
+        <motion.p
+          initial={{ opacity: 0, y: 6 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
+          transition={{ ...spring, delay: 0.35 }}
+          className="text-base md:text-lg leading-relaxed"
+          style={{ color: 'var(--muted-foreground)' }}
+        >
+          {description}
+        </motion.p>
+      </div>
+    </section>
+  )
+}
+
+// ─── Hero heading — word by word reveal ────────────────────────
+function HeroHeading() {
+  const line1Words = ['Every', 'family', 'is', 'a', 'story.']
+  const line2Words = ['Most', 'of', 'it', 'is', 'unwritten.']
+
+  return (
+    <h1 className="font-serif text-4xl md:text-5xl lg:text-[3.5rem] font-semibold tracking-tight leading-[1.15] text-balance">
+      <span className="block">
+        {line1Words.map((word, i) => (
+          <motion.span
+            key={`l1-${i}`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 0.3 + i * 0.08 }}
+            className="inline-block mr-[0.3em]"
+          >
+            {word}
+          </motion.span>
+        ))}
+      </span>
+      <span className="block mt-1">
+        {line2Words.map((word, i) => (
+          <motion.span
+            key={`l2-${i}`}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 0.7 + i * 0.08 }}
+            className="inline-block mr-[0.3em]"
+          >
+            {word}
+          </motion.span>
+        ))}
+      </span>
+    </h1>
+  )
+}
+
+// ─── Leaf motif — subtle, integrated ───────────────────────────
+function LeafMotif({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 40"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+    >
+      <path
+        d="M12 2C12 2 4 12 4 22C4 30 8 36 12 38C16 36 20 30 20 22C20 12 12 2 12 2Z"
+        stroke="currentColor"
+        strokeWidth="1"
+        opacity="0.2"
+        fill="none"
+      />
+      <path
+        d="M12 8V34"
+        stroke="currentColor"
+        strokeWidth="0.75"
+        opacity="0.15"
+      />
+    </svg>
+  )
+}
+
+// ─── Main component ────────────────────────────────────────────
+
+export function LandingPage() {
+  const heroRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  })
+  // Subtle parallax on hero — 1-2% movement (Cooper: depth, layering)
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, -30])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0])
+
+  const narrativeSections = [
+    {
+      title: 'Scan',
+      description:
+        'Point your camera at old letters and documents. Stories become structured memory.',
+      visual: <ScanVisual />,
+    },
+    {
+      title: 'Listen',
+      description:
+        'Record the stories in their own voice. Some things should be heard, not read.',
+      visual: <ListenVisual />,
+    },
+    {
+      title: 'Connect',
+      description:
+        'See the threads between people, across generations. A living map of belonging.',
+      visual: <ConnectVisual />,
+    },
+    {
+      title: 'Share',
+      description:
+        'Send a memory to someone who needs it. Family is the original network.',
+      visual: <ShareVisual />,
+    },
+  ]
+
+  return (
+    <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+      {/* ── Hero ── */}
+      {/* Singer/Rams: strip everything unnecessary. What remains is essential. */}
+      <header ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-6">
+        <motion.div
+          style={{ y: heroY, opacity: heroOpacity }}
+          className="max-w-2xl mx-auto text-center"
+        >
+          {/* Leaf — integrated, not slapped on */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ ...gentleFade, delay: 0.1 }}
+            className="flex justify-center mb-10"
+          >
+            <LeafMotif className="w-6 h-10 text-[var(--foreground)]" />
+          </motion.div>
+
+          {/* Heading — word by word, Kowalski spring */}
+          <HeroHeading />
+
+          {/* Subtitle — one line, muted */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1.2 }}
+            className="mt-6 text-base md:text-lg"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
+            A place to gather what matters before it&rsquo;s gone.
+          </motion.p>
+
+          {/* CTA — single, honest */}
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...spring, delay: 1.5 }}
+            className="mt-12"
+          >
+            <Link
+              href="/login"
+              className="inline-block font-serif text-lg tracking-tight border-b-2 pb-0.5 transition-colors duration-300"
+              style={{
+                color: 'var(--accent)',
+                borderColor: 'var(--accent)',
+              }}
+            >
+              Begin
+            </Link>
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll hint — gentle pulse */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.3, 0] }}
+          transition={{ duration: 3, delay: 2.5, repeat: Infinity, repeatDelay: 1 }}
+          className="absolute bottom-12 left-1/2 -translate-x-1/2"
+        >
+          <div className="w-px h-8" style={{ background: 'var(--muted-foreground)' }} />
+        </motion.div>
+      </header>
+
+      {/* ── Narrative sections ── */}
+      {/* Alexander: same structure, different content. Organic repetition. */}
+      {narrativeSections.map((section, i) => (
+        <NarrativeSection
+          key={section.title}
+          title={section.title}
+          description={section.description}
+          visual={section.visual}
+          index={i}
+        />
+      ))}
+
+      {/* ── Whakapapa — woven in, not a section ── */}
+      {/* Cooper: information has weight without needing a box */}
+      <section className="px-6 py-24 md:py-32">
+        <Reveal className="max-w-xl mx-auto text-center">
+          <LeafMotif className="w-4 h-7 text-[var(--foreground)] mx-auto mb-8 opacity-40" />
+          <p
+            className="font-serif text-lg md:text-xl italic leading-relaxed"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
+            <span style={{ color: 'var(--foreground)' }}>Whakapapa</span>{' '}
+            <span className="text-sm md:text-base not-italic" style={{ color: 'var(--muted-foreground)', opacity: 0.6 }}>
+              (fa·ka·pa·pa)
+            </span>{' '}
+            — the Māori word for the living web of stories that connect us across generations.
+          </p>
+        </Reveal>
+      </section>
+
+      {/* ── Final CTA ── */}
+      {/* Rams: honest, no manipulation */}
+      <section className="px-6 py-24 md:py-32">
+        <Reveal className="text-center">
+          <Link
+            href="/login"
+            className="inline-block font-serif text-2xl md:text-3xl tracking-tight transition-colors duration-300"
+            style={{ color: 'var(--foreground)' }}
+          >
+            Start preserving
+            <span style={{ color: 'var(--accent)' }}>.</span>
+          </Link>
+        </Reveal>
+      </section>
+
+      {/* ── Footer ── */}
+      {/* That's it. */}
+      <footer className="px-6 py-8 border-t" style={{ borderColor: 'var(--border)' }}>
+        <div className="max-w-xl mx-auto flex items-center justify-between text-sm" style={{ color: 'var(--muted-foreground)' }}>
+          <span>Made in Aotearoa 🇳🇿</span>
+          <a
+            href="https://github.com/maxwellyoung/whakapapa"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 transition-colors duration-200 hover:opacity-70"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
+            <Github className="size-4" />
+          </a>
+        </div>
+      </footer>
+    </div>
   )
 }
