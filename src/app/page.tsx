@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { LandingPage } from '@/components/landing-page'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -8,8 +9,8 @@ export default async function Home() {
   if (user) {
     // User is logged in, redirect to dashboard
     redirect('/people')
-  } else {
-    // Not logged in, redirect to login
-    redirect('/login')
   }
+
+  // Not logged in — show the landing page
+  return <LandingPage />
 }
