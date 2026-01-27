@@ -81,6 +81,36 @@ const QUICK_RELATIONSHIP_OPTIONS = [
   { value: 'sibling', label: 'Sibling', description: 'Brothers or sisters' },
 ] as const
 
+// Gender-based accent colors for node borders
+function getNodeAccent(gender: string | null): {
+  border: string
+  gradient: string
+  ring: string
+} {
+  switch (gender?.toLowerCase()) {
+    case 'male':
+    case 'm':
+      return {
+        border: 'border-sky-200/80 dark:border-sky-800/60',
+        gradient: 'from-sky-50 to-sky-100 dark:from-sky-950/30 dark:to-sky-900/20',
+        ring: 'ring-sky-500/50',
+      }
+    case 'female':
+    case 'f':
+      return {
+        border: 'border-rose-200/80 dark:border-rose-800/60',
+        gradient: 'from-rose-50 to-rose-100 dark:from-rose-950/30 dark:to-rose-900/20',
+        ring: 'ring-rose-500/50',
+      }
+    default:
+      return {
+        border: 'border-stone-200/80 dark:border-stone-700/80',
+        gradient: 'from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800',
+        ring: 'ring-violet-500/50',
+      }
+  }
+}
+
 // Custom node component with photo and Apple-like styling
 function PersonNode({
   data,
@@ -97,6 +127,8 @@ function PersonNode({
   selected?: boolean
 }) {
   const hasPhoto = data.person.photo_url
+  const accent = getNodeAccent(data.person.gender)
+  const isDeceased = !!data.person.death_date
 
   return (
     <>
@@ -130,51 +162,74 @@ function PersonNode({
                 'bg-white/95 dark:bg-stone-900/95',
                 'backdrop-blur-xl',
                 'rounded-2xl',
-                'border border-stone-200/80 dark:border-stone-700/80',
+                'border-2',
+                accent.border,
                 'shadow-sm',
                 'hover:shadow-lg hover:shadow-stone-200/50 dark:hover:shadow-stone-900/50',
-                'hover:border-stone-300 dark:hover:border-stone-600',
                 'hover:-translate-y-0.5',
                 'transition-all duration-200 ease-out',
                 'cursor-pointer',
-                'min-w-[140px]',
-                selected && 'ring-2 ring-blue-500/50 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 shadow-lg shadow-blue-500/10',
+                'min-w-[150px] max-w-[200px]',
+                'touch-manipulation',
+                selected && `ring-2 ${accent.ring} ring-offset-2 ring-offset-white dark:ring-offset-stone-900 shadow-lg`,
                 data.highlighted && 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 shadow-lg shadow-amber-500/20',
-                data.dimmed && 'opacity-30'
+                data.dimmed && 'opacity-30',
+                isDeceased && 'bg-stone-50/90 dark:bg-stone-950/90'
               )}
             >
               <div className="flex items-center gap-3">
                 {/* Profile photo or placeholder */}
                 <div className="relative flex-shrink-0">
                   {hasPhoto ? (
-                    <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-white dark:ring-stone-800 shadow-sm">
+                    <div className={cn(
+                      'w-11 h-11 rounded-full overflow-hidden ring-2 shadow-sm',
+                      isDeceased
+                        ? 'ring-stone-300 dark:ring-stone-600 grayscale-[30%]'
+                        : 'ring-white dark:ring-stone-800'
+                    )}>
                       <Image
                         src={data.person.photo_url!}
                         alt={data.label}
-                        width={40}
-                        height={40}
+                        width={44}
+                        height={44}
                         className="w-full h-full object-cover"
                       />
                     </div>
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-stone-100 to-stone-200 dark:from-stone-700 dark:to-stone-800 flex items-center justify-center ring-2 ring-white dark:ring-stone-800 shadow-sm">
+                    <div className={cn(
+                      'w-11 h-11 rounded-full bg-gradient-to-br flex items-center justify-center ring-2 shadow-sm',
+                      accent.gradient,
+                      isDeceased
+                        ? 'ring-stone-300 dark:ring-stone-600'
+                        : 'ring-white dark:ring-stone-800'
+                    )}>
                       <User className="w-5 h-5 text-stone-400 dark:text-stone-500" />
                     </div>
                   )}
                   {/* Living indicator dot */}
-                  {!data.person.death_date && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-stone-900" />
+                  {!isDeceased && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-stone-900 shadow-sm" />
                   )}
                 </div>
 
                 {/* Name and dates */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-stone-900 dark:text-stone-100 text-sm truncate">
+                  <p className={cn(
+                    'font-semibold text-sm truncate',
+                    isDeceased
+                      ? 'text-stone-600 dark:text-stone-400'
+                      : 'text-stone-900 dark:text-stone-100'
+                  )}>
                     {data.label}
                   </p>
                   {(data.birthYear || data.deathYear) && (
-                    <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium">
-                      {data.birthYear || '?'} – {data.deathYear || (data.person.death_date ? '?' : 'present')}
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 font-medium tabular-nums">
+                      {data.birthYear || '?'} – {data.deathYear || (isDeceased ? '?' : 'present')}
+                    </p>
+                  )}
+                  {data.person.birth_place && (
+                    <p className="text-[10px] text-stone-400 dark:text-stone-500 truncate mt-0.5">
+                      📍 {data.person.birth_place}
                     </p>
                   )}
                 </div>
@@ -204,7 +259,7 @@ function PersonNode({
                 </p>
               )}
               <p className="text-[10px] text-stone-400 dark:text-stone-500 pt-1">
-                Double-click to view profile
+                {isDeceased ? '🕊️ ' : ''}Double-click to view profile
               </p>
             </div>
           </TooltipContent>
@@ -256,14 +311,14 @@ function layoutNodesWithDagre(
   dagreGraph.setDefaultEdgeLabel(() => ({}))
   dagreGraph.setGraph({
     rankdir: 'TB', // Top to bottom
-    nodesep: 80,   // Horizontal spacing
-    ranksep: 120,  // Vertical spacing
-    marginx: 50,
-    marginy: 50,
+    nodesep: 100,  // Horizontal spacing — more room between siblings
+    ranksep: 140,  // Vertical spacing — clearer generations
+    marginx: 60,
+    marginy: 60,
   })
 
-  const NODE_WIDTH = 180
-  const NODE_HEIGHT = 70
+  const NODE_WIDTH = 200
+  const NODE_HEIGHT = 75
 
   // Build relationship maps for spouse grouping
   const spouseMap = new Map<string, string[]>()
@@ -346,18 +401,22 @@ function layoutNodesWithDagre(
       animated: false,
       style: {
         stroke: color,
-        strokeWidth: isSpouseType ? 3 : 2,
+        strokeWidth: isSpouseType ? 2.5 : isSiblingType ? 1.5 : 2,
         strokeDasharray: isSpouseType ? '8,4' : isSiblingType ? '4,4' : undefined,
-        opacity: 0.7,
+        opacity: 0.65,
+        strokeLinecap: 'round' as const,
       },
       markerEnd: isParentType
         ? {
             type: MarkerType.ArrowClosed,
             color,
-            width: 20,
-            height: 20,
+            width: 16,
+            height: 16,
           }
         : undefined,
+      label: isSpouseType ? '❤️' : undefined,
+      labelStyle: isSpouseType ? { fontSize: 10 } : undefined,
+      labelBgStyle: isSpouseType ? { fill: 'transparent' } : undefined,
     }
   })
 
@@ -643,32 +702,51 @@ function TreeContent() {
 
   if (nodes.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
-        <div className="text-center max-w-md px-6">
-          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20">
-            <Users className="h-8 w-8 text-indigo-500 dark:text-indigo-400" />
-          </div>
-          <h2 className="text-xl font-semibold text-stone-800 dark:text-stone-200 mb-2">
-            Your family tree will appear here
+      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          className="text-center max-w-md"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.4, type: 'spring', stiffness: 200 }}
+            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/15 dark:to-pink-500/20 shadow-inner"
+          >
+            <span className="text-4xl">🌿</span>
+          </motion.div>
+          <h2 className="text-2xl font-semibold text-stone-800 dark:text-stone-200 mb-3">
+            Start building your family tree
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-8 leading-relaxed">
-            Add family members and connect them with relationships to see your whakapapa come to
-            life as an interactive tree.
+          <p className="text-sm text-stone-500 dark:text-stone-400 mb-4 leading-relaxed">
+            Every family story begins with a single person. Add your first family member
+            and watch your whakapapa come to life.
+          </p>
+          <p className="text-xs text-stone-400 dark:text-stone-500 mb-8 leading-relaxed">
+            You can add relationships, stories, photos, and documents as you go.
+            There&apos;s no wrong way to start — begin with whoever comes to mind first.
           </p>
           <div className="flex flex-col gap-3">
             <Link href="/people/new">
-              <Button className="w-full h-11 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/25">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add your first family member
+              <Button className="w-full h-12 text-base bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/25 rounded-xl">
+                <UserPlus className="mr-2 h-5 w-5" />
+                Add your first person
+              </Button>
+            </Link>
+            <Link href="/import">
+              <Button variant="outline" className="w-full h-11 rounded-xl">
+                📥 Import from GEDCOM
               </Button>
             </Link>
             <Link href="/people">
-              <Button variant="outline" className="w-full h-11">
-                View people list
+              <Button variant="ghost" className="w-full h-10 text-stone-500 dark:text-stone-400">
+                View people list →
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
     )
   }
@@ -792,13 +870,18 @@ function TreeContent() {
               nodeTypes={nodeTypes}
               connectionLineType={ConnectionLineType.SmoothStep}
               fitView
-              fitViewOptions={{ padding: 0.3 }}
-              minZoom={0.1}
-              maxZoom={2}
+              fitViewOptions={{ padding: 0.4, maxZoom: 1.2 }}
+              minZoom={0.05}
+              maxZoom={2.5}
               proOptions={{ hideAttribution: true }}
               defaultEdgeOptions={{
                 style: { strokeWidth: 2 },
               }}
+              nodesDraggable={true}
+              panOnScroll={true}
+              zoomOnPinch={true}
+              preventScrolling={true}
+              selectNodesOnDrag={false}
             >
               <Background gap={24} size={1.5} color="#d6d3d1" className="dark:opacity-20" />
               <MiniMap
@@ -972,7 +1055,26 @@ function TreeContent() {
       </AnimatePresence>
 
       {/* Relationship Legend - hidden on mobile */}
-      <div className="hidden md:block absolute top-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3 z-20">
+      <div className="hidden md:block absolute top-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3 z-20 min-w-[160px]">
+        {/* Stats */}
+        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-stone-200/80 dark:border-stone-700/80">
+          <Users className="h-3.5 w-3.5 text-stone-400" />
+          <span className="text-xs font-medium text-stone-600 dark:text-stone-300">
+            {people.length} {people.length === 1 ? 'person' : 'people'}
+          </span>
+          {relationshipCount > 0 && (
+            <>
+              <span className="text-stone-300 dark:text-stone-600">·</span>
+              <span className="text-xs text-stone-500 dark:text-stone-400">
+                {relationshipCount} {relationshipCount === 1 ? 'link' : 'links'}
+              </span>
+            </>
+          )}
+        </div>
+        {/* Relationship lines */}
+        <p className="text-[10px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2">
+          Relationships
+        </p>
         <div className="space-y-2">
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
@@ -981,7 +1083,7 @@ function TreeContent() {
                 <polygon points="14,0 20,4 14,8" fill="#6366f1" />
               </svg>
             </div>
-            <span className="text-xs text-stone-600 dark:text-stone-400">Parent</span>
+            <span className="text-xs text-stone-600 dark:text-stone-400">Parent → Child</span>
           </div>
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
@@ -997,7 +1099,7 @@ function TreeContent() {
                 />
               </svg>
             </div>
-            <span className="text-xs text-stone-600 dark:text-stone-400">Partner</span>
+            <span className="text-xs text-stone-600 dark:text-stone-400">Partner / Spouse</span>
           </div>
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
@@ -1016,38 +1118,73 @@ function TreeContent() {
             <span className="text-xs text-stone-600 dark:text-stone-400">Sibling</span>
           </div>
         </div>
+        {/* Status indicators */}
+        <p className="text-[10px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500 mt-3 mb-2">
+          Status
+        </p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 flex items-center justify-center">
+              <div className="w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-stone-800 shadow-sm" />
+            </div>
+            <span className="text-xs text-stone-600 dark:text-stone-400">Living</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-5 flex items-center justify-center">
+              <div className="w-3 h-3 bg-stone-200 dark:bg-stone-700 rounded-full border-2 border-white dark:border-stone-800" />
+            </div>
+            <span className="text-xs text-stone-600 dark:text-stone-400">Deceased</span>
+          </div>
+        </div>
         <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700">
-          <p className="text-[10px] text-stone-400 dark:text-stone-500">
-            ⌘F to search · Arrow keys to navigate
+          <p className="text-[10px] text-stone-400 dark:text-stone-500 leading-relaxed">
+            ⌘F search · Arrow keys navigate<br />
+            Double-click to view · Right-click for menu
           </p>
         </div>
       </div>
 
       {/* Mobile legend */}
-      <div className="md:hidden absolute bottom-20 left-4 right-4 flex justify-center gap-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-2 z-10">
-        <div className="flex items-center gap-1.5">
-          <div className="w-4 h-0.5 bg-indigo-500 rounded-full" />
-          <span className="text-[10px] text-stone-500 dark:text-stone-400">Parent</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div
-            className="w-4 h-0.5 bg-pink-500 rounded-full"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(90deg, #ec4899, #ec4899 3px, transparent 3px, transparent 5px)',
-            }}
-          />
-          <span className="text-[10px] text-stone-500 dark:text-stone-400">Partner</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div
-            className="w-4 h-0.5 bg-emerald-500 rounded-full"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(90deg, #10b981, #10b981 2px, transparent 2px, transparent 4px)',
-            }}
-          />
-          <span className="text-[10px] text-stone-500 dark:text-stone-400">Sibling</span>
+      <div className="md:hidden absolute bottom-20 left-4 right-4 z-10">
+        <div className="flex flex-col gap-2 items-center">
+          {/* Stats pill */}
+          <div className="bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-1.5">
+            <span className="text-[11px] font-medium text-stone-600 dark:text-stone-300">
+              {people.length} {people.length === 1 ? 'person' : 'people'}
+              {relationshipCount > 0 && ` · ${relationshipCount} ${relationshipCount === 1 ? 'link' : 'links'}`}
+            </span>
+          </div>
+          {/* Legend row */}
+          <div className="flex justify-center gap-3 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-0.5 bg-indigo-500 rounded-full" />
+              <span className="text-[10px] text-stone-500 dark:text-stone-400">Parent</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div
+                className="w-4 h-0.5"
+                style={{
+                  backgroundImage:
+                    'repeating-linear-gradient(90deg, #ec4899, #ec4899 3px, transparent 3px, transparent 5px)',
+                }}
+              />
+              <span className="text-[10px] text-stone-500 dark:text-stone-400">Partner</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div
+                className="w-4 h-0.5"
+                style={{
+                  backgroundImage:
+                    'repeating-linear-gradient(90deg, #10b981, #10b981 2px, transparent 2px, transparent 4px)',
+                }}
+              />
+              <span className="text-[10px] text-stone-500 dark:text-stone-400">Sibling</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white dark:border-stone-800" />
+              <span className="text-[10px] text-stone-500 dark:text-stone-400">Living</span>
+            </div>
+          </div>
         </div>
       </div>
 
