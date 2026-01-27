@@ -292,7 +292,8 @@ function NarrativeSection({
   return (
     <section
       ref={ref}
-      className="min-h-[70vh] md:min-h-[80vh] flex flex-col items-center justify-center px-6 py-24 md:py-32 relative"
+      className="h-screen flex flex-col items-center justify-center px-6 relative"
+      style={{ scrollSnapAlign: 'start' }}
     >
       {/* Subtle top border — not a card, just a breath */}
       {index > 0 && (
@@ -301,21 +302,23 @@ function NarrativeSection({
 
       <div className="max-w-lg mx-auto text-center">
         {/* Visual first — let it speak */}
+        {/* Kowalski: scale + blur entrance — cinematic reveal */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ ...gentleFade, delay: 0.1 }}
+          initial={{ opacity: 0, scale: 0.94, filter: 'blur(8px)' }}
+          animate={isInView ? { opacity: 1, scale: 1, filter: 'blur(0px)' } : { opacity: 0, scale: 0.94, filter: 'blur(8px)' }}
+          transition={{ type: 'spring', stiffness: 60, damping: 25, delay: 0.05 }}
           className="mb-12"
         >
           {visual}
         </motion.div>
 
         {/* Title — one word, Newsreader, large */}
+        {/* Kowalski: scale from 0.96 to 1 — cinematic, not bouncy */}
         <motion.h2
-          initial={{ opacity: 0, y: 8 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-          transition={{ ...spring, delay: 0.2 }}
-          className="font-serif text-3xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-4"
+          initial={{ opacity: 0, y: 12, scale: 0.96 }}
+          animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 12, scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 70, damping: 25, delay: 0.2 }}
+          className="font-serif text-4xl md:text-5xl lg:text-6xl font-semibold tracking-tight mb-4"
           style={{ color: 'var(--foreground)' }}
         >
           {title}
@@ -323,9 +326,9 @@ function NarrativeSection({
 
         {/* Description — one sentence, Inter, muted */}
         <motion.p
-          initial={{ opacity: 0, y: 6 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 6 }}
-          transition={{ ...spring, delay: 0.35 }}
+          initial={{ opacity: 0, y: 8, filter: 'blur(4px)' }}
+          animate={isInView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : { opacity: 0, y: 8, filter: 'blur(4px)' }}
+          transition={{ type: 'spring', stiffness: 60, damping: 25, delay: 0.4 }}
           className="text-base md:text-lg leading-relaxed"
           style={{ color: 'var(--muted-foreground)' }}
         >
@@ -347,9 +350,9 @@ function HeroHeading() {
         {line1Words.map((word, i) => (
           <motion.span
             key={`l1-${i}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: 0.3 + i * 0.08 }}
+            initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ type: 'spring', stiffness: 80, damping: 22, delay: 0.3 + i * 0.1 }}
             className="inline-block mr-[0.3em]"
           >
             {word}
@@ -360,9 +363,9 @@ function HeroHeading() {
         {line2Words.map((word, i) => (
           <motion.span
             key={`l2-${i}`}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...spring, delay: 0.7 + i * 0.08 }}
+            initial={{ opacity: 0, y: 16, filter: 'blur(6px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            transition={{ type: 'spring', stiffness: 80, damping: 22, delay: 0.7 + i * 0.1 }}
             className="inline-block mr-[0.3em]"
           >
             {word}
@@ -439,10 +442,17 @@ export function LandingPage() {
   ]
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--background)', color: 'var(--foreground)' }}>
+    <div
+      className="min-h-screen overflow-y-auto"
+      style={{
+        background: 'var(--background)',
+        color: 'var(--foreground)',
+        scrollSnapType: 'y proximity',
+      }}
+    >
       {/* ── Hero ── */}
       {/* Singer/Rams: strip everything unnecessary. What remains is essential. */}
-      <header ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-6">
+      <header ref={heroRef} className="relative h-screen flex flex-col items-center justify-center px-6" style={{ scrollSnapAlign: 'start' }}>
         <motion.div
           style={{ y: heroY, opacity: heroOpacity }}
           className="max-w-2xl mx-auto text-center"
@@ -514,55 +524,56 @@ export function LandingPage() {
         />
       ))}
 
-      {/* ── Whakapapa — woven in, not a section ── */}
+      {/* ── Whakapapa + CTA + Footer — final snap section ── */}
       {/* Cooper: information has weight without needing a box */}
-      <section className="px-6 py-24 md:py-32">
-        <Reveal className="max-w-xl mx-auto text-center">
-          <LeafMotif className="w-4 h-7 text-[var(--foreground)] mx-auto mb-8 opacity-40" />
-          <p
-            className="font-serif text-lg md:text-xl italic leading-relaxed"
-            style={{ color: 'var(--muted-foreground)' }}
-          >
-            <span style={{ color: 'var(--foreground)' }}>Whakapapa</span>{' '}
-            <span className="text-sm md:text-base not-italic" style={{ color: 'var(--muted-foreground)', opacity: 0.6 }}>
-              (fa·ka·pa·pa)
-            </span>{' '}
-            — the Māori word for the living web of stories that connect us across generations.
-          </p>
-        </Reveal>
-      </section>
+      <section
+        className="h-screen flex flex-col items-center justify-center px-6 relative"
+        style={{ scrollSnapAlign: 'start' }}
+      >
+        <div className="flex flex-col items-center gap-16 md:gap-20">
+          <Reveal className="max-w-xl mx-auto text-center">
+            <LeafMotif className="w-4 h-7 text-[var(--foreground)] mx-auto mb-8 opacity-40" />
+            <p
+              className="font-serif text-lg md:text-xl italic leading-relaxed"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              <span style={{ color: 'var(--foreground)' }}>Whakapapa</span>{' '}
+              <span className="text-sm md:text-base not-italic" style={{ color: 'var(--muted-foreground)', opacity: 0.6 }}>
+                (fa·ka·pa·pa)
+              </span>{' '}
+              — the Māori word for the living web of stories that connect us across generations.
+            </p>
+          </Reveal>
 
-      {/* ── Final CTA ── */}
-      {/* Rams: honest, no manipulation */}
-      <section className="px-6 py-24 md:py-32">
-        <Reveal className="text-center">
-          <Link
-            href="/login"
-            className="inline-block font-serif text-2xl md:text-3xl tracking-tight transition-colors duration-300"
-            style={{ color: 'var(--foreground)' }}
-          >
-            Start preserving
-            <span style={{ color: 'var(--accent)' }}>.</span>
-          </Link>
-        </Reveal>
-      </section>
-
-      {/* ── Footer ── */}
-      {/* That's it. */}
-      <footer className="px-6 py-8 border-t" style={{ borderColor: 'var(--border)' }}>
-        <div className="max-w-xl mx-auto flex items-center justify-between text-sm" style={{ color: 'var(--muted-foreground)' }}>
-          <span>Made in Aotearoa 🇳🇿</span>
-          <a
-            href="https://github.com/maxwellyoung/whakapapa"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 transition-colors duration-200 hover:opacity-70"
-            style={{ color: 'var(--muted-foreground)' }}
-          >
-            <Github className="size-4" />
-          </a>
+          {/* Rams: honest, no manipulation */}
+          <Reveal className="text-center" delay={0.2}>
+            <Link
+              href="/login"
+              className="inline-block font-serif text-2xl md:text-3xl tracking-tight transition-colors duration-300 hover:opacity-70"
+              style={{ color: 'var(--foreground)' }}
+            >
+              Start preserving
+              <span style={{ color: 'var(--accent)' }}>.</span>
+            </Link>
+          </Reveal>
         </div>
-      </footer>
+
+        {/* Footer pinned to bottom of this section */}
+        <footer className="absolute bottom-0 left-0 right-0 px-6 py-8 border-t" style={{ borderColor: 'var(--border)' }}>
+          <div className="max-w-xl mx-auto flex items-center justify-between text-sm" style={{ color: 'var(--muted-foreground)' }}>
+            <span>Made in Aotearoa 🇳🇿</span>
+            <a
+              href="https://github.com/maxwellyoung/whakapapa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 transition-colors duration-200 hover:opacity-70"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
+              <Github className="size-4" />
+            </a>
+          </div>
+        </footer>
+      </section>
     </div>
   )
 }
