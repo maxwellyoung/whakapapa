@@ -1,7 +1,16 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { useSpring, animated, useTransition, config } from '@react-spring/web'
+import { motion, AnimatePresence } from 'framer-motion'
+
+// Spring configs inspired by Emil Kowalski
+// Purposeful, fast, alive. Never decorative.
+const springs = {
+  gentle: { type: 'spring' as const, stiffness: 400, damping: 40 },
+  wobbly: { type: 'spring' as const, stiffness: 300, damping: 20 },
+  snappy: { type: 'spring' as const, stiffness: 500, damping: 30 },
+  slow: { type: 'spring' as const, stiffness: 120, damping: 40 },
+}
 
 interface SpringFadeInProps {
   children: ReactNode
@@ -10,17 +19,18 @@ interface SpringFadeInProps {
 }
 
 export function SpringFadeIn({ children, delay = 0, className }: SpringFadeInProps) {
-  const styles = useSpring({
-    from: { opacity: 0, transform: 'translateY(20px)' },
-    to: { opacity: 1, transform: 'translateY(0px)' },
-    delay,
-    config: { ...config.gentle, tension: 400, friction: 40 }
-  })
-
   return (
-    <animated.div style={styles} className={className}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        ...springs.gentle,
+        delay: delay / 1000
+      }}
+      className={className}
+    >
       {children}
-    </animated.div>
+    </motion.div>
   )
 }
 
@@ -31,17 +41,18 @@ interface SpringScaleInProps {
 }
 
 export function SpringScaleIn({ children, delay = 0, className }: SpringScaleInProps) {
-  const styles = useSpring({
-    from: { opacity: 0, transform: 'scale(0.9)' },
-    to: { opacity: 1, transform: 'scale(1)' },
-    delay,
-    config: { ...config.wobbly, tension: 300 }
-  })
-
   return (
-    <animated.div style={styles} className={className}>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{
+        ...springs.wobbly,
+        delay: delay / 1000
+      }}
+      className={className}
+    >
       {children}
-    </animated.div>
+    </motion.div>
   )
 }
 
@@ -57,13 +68,31 @@ export function StaggeredChildren({
   className 
 }: StaggeredChildrenProps) {
   return (
-    <div className={className}>
+    <motion.div 
+      className={className}
+      initial="hidden"
+      animate="visible"
+      variants={{
+        visible: {
+          transition: {
+            staggerChildren: staggerDelay / 1000
+          }
+        }
+      }}
+    >
       {children.map((child, index) => (
-        <SpringFadeIn key={index} delay={index * staggerDelay}>
+        <motion.div
+          key={index}
+          variants={{
+            hidden: { opacity: 0, y: 20 },
+            visible: { opacity: 1, y: 0 }
+          }}
+          transition={springs.gentle}
+        >
           {child}
-        </SpringFadeIn>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   )
 }
 
@@ -74,98 +103,90 @@ interface SlideTransitionProps {
   className?: string
 }
 
+const directionMap = {
+  up: { y: '100%' },
+  down: { y: '-100%' },
+  left: { x: '100%' },
+  right: { x: '-100%' },
+}
+
 export function SlideTransition({ 
   show, 
   children, 
   direction = 'up', 
   className 
 }: SlideTransitionProps) {
-  const getTransform = (direction: string) => {
-    switch (direction) {
-      case 'up': return 'translateY(100%)'
-      case 'down': return 'translateY(-100%)'
-      case 'left': return 'translateX(100%)'
-      case 'right': return 'translateX(-100%)'
-      default: return 'translateY(100%)'
-    }
-  }
+  const offset = directionMap[direction]
 
-  const transitions = useTransition(show, {
-    from: { opacity: 0, transform: getTransform(direction) },
-    enter: { opacity: 1, transform: 'translate(0%)' },
-    leave: { opacity: 0, transform: getTransform(direction) },
-    config: { ...config.gentle, tension: 400, friction: 40 }
-  })
-
-  return transitions(
-    (styles, item) =>
-      item && (
-        <animated.div style={styles} className={className}>
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, ...offset }}
+          animate={{ opacity: 1, x: 0, y: 0 }}
+          exit={{ opacity: 0, ...offset }}
+          transition={springs.gentle}
+          className={className}
+        >
           {children}
-        </animated.div>
-      )
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
 
 interface FloatingElementProps {
   children: ReactNode
   intensity?: number
-  speed?: number
   className?: string
 }
 
 export function FloatingElement({ 
   children, 
   intensity = 10, 
-  speed = 3000,
   className 
 }: FloatingElementProps) {
-  const styles = useSpring({
-    from: { transform: 'translateY(0px)' },
-    to: async (next) => {
-      while (true) {
-        await next({ transform: `translateY(-${intensity}px)` })
-        await next({ transform: 'translateY(0px)' })
-      }
-    },
-    config: { tension: 120, friction: 40, duration: speed }
-  })
-
   return (
-    <animated.div style={styles} className={className}>
+    <motion.div
+      animate={{ y: [-intensity / 2, intensity / 2, -intensity / 2] }}
+      transition={{
+        duration: 3,
+        repeat: Infinity,
+        ease: 'easeInOut'
+      }}
+      className={className}
+    >
       {children}
-    </animated.div>
+    </motion.div>
   )
 }
 
 interface PulseProps {
   children: ReactNode
   scale?: number
-  speed?: number
   className?: string
 }
 
 export function Pulse({ 
   children, 
   scale = 1.05, 
-  speed = 2000,
   className 
 }: PulseProps) {
-  const styles = useSpring({
-    from: { transform: 'scale(1)', opacity: 0.7 },
-    to: async (next) => {
-      while (true) {
-        await next({ transform: `scale(${scale})`, opacity: 1 })
-        await next({ transform: 'scale(1)', opacity: 0.7 })
-      }
-    },
-    config: { tension: 300, friction: 30, duration: speed }
-  })
-
   return (
-    <animated.div style={styles} className={className}>
+    <motion.div
+      animate={{ 
+        scale: [1, scale, 1],
+        opacity: [0.7, 1, 0.7]
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        ease: 'easeInOut'
+      }}
+      className={className}
+    >
       {children}
-    </animated.div>
+    </motion.div>
   )
 }
 
@@ -177,55 +198,48 @@ interface SpringNumberProps {
 }
 
 export function SpringNumber({ value, className, prefix = '', suffix = '' }: SpringNumberProps) {
-  const { number } = useSpring({
-    from: { number: 0 },
-    number: value,
-    delay: 200,
-    config: config.molasses
-  })
-
   return (
-    <animated.span className={className}>
-      {prefix}
-      {number.to(n => n.toFixed(0))}
-      {suffix}
-    </animated.span>
+    <motion.span
+      className={className}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.2 }}
+    >
+      {prefix}{value}{suffix}
+    </motion.span>
   )
 }
 
-// Specialized for whakapapa - represents growing family tree
+// Specialized for whakapapa. Represents the growing family tree.
 interface GrowingTreeProps {
   nodeCount: number
   className?: string
 }
 
 export function GrowingTree({ nodeCount, className }: GrowingTreeProps) {
-  const styles = useSpring({
-    from: { transform: 'scale(0.8)', opacity: 0 },
-    to: { transform: 'scale(1)', opacity: 1 },
-    config: { ...config.wobbly, tension: 200 }
-  })
-
-  const countStyles = useSpring({
-    from: { number: 0 },
-    number: nodeCount,
-    delay: 400,
-    config: config.molasses
-  })
-
   return (
-    <animated.div style={styles} className={className}>
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={springs.wobbly}
+      className={className}
+    >
       <div className="flex items-center gap-3">
-        <FloatingElement intensity={8} speed={4000}>
+        <FloatingElement intensity={8}>
           <div className="text-4xl">🌿</div>
         </FloatingElement>
         <div className="text-sm text-muted-foreground">
-          <animated.span className="font-medium text-foreground">
-            {countStyles.number.to(n => n.toFixed(0))}
-          </animated.span>
+          <motion.span 
+            className="font-medium text-foreground"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            {nodeCount}
+          </motion.span>
           <span> family {nodeCount === 1 ? 'member' : 'members'}</span>
         </div>
       </div>
-    </animated.div>
+    </motion.div>
   )
 }

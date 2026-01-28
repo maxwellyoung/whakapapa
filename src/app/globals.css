@@ -1,6 +1,19 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=General+Sans:ital,wght@0,200..700;1,200..700&display=swap');
 
+/* Sentient Font - Premium serif for display headings */
+@font-face {
+  font-family: 'Sentient';
+  src: local('Sentient'), 
+       local('Charter'), 
+       local('Georgia'), 
+       local('Times New Roman');
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+/* For now, fallback to Charter/Georgia until Sentient is properly loaded */
+
 /*
  * Whakapapa Design System
  * 
@@ -62,10 +75,10 @@
   --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Typography - Sentient for display, General Sans for body */
-  --font-sans: "General Sans", system-ui, -apple-system, sans-serif;
-  --font-serif: "Sentient", Georgia, serif;
-  --font-display: "Sentient", Georgia, serif;
+  /* Typography - Sentient/Charter for display, General Sans for body */
+  --font-sans: "General Sans", -apple-system, system-ui, sans-serif;
+  --font-serif: "Sentient", "Charter", "Georgia", serif;
+  --font-display: "Sentient", "Charter", "Georgia", serif;
 
   /* Generous spacing rhythm */
   --space-unit: 4px;
