@@ -1,82 +1,92 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=General+Sans:ital,wght@0,200..700;1,200..700&display=swap');
 
 /*
  * Whakapapa Design System
- *
+ * 
+ * Honoring the cultural significance of whakapapa while embracing Maxwell's design language.
+ * 
  * Inspired by:
- * - Emil Kowalski: soft futurism
- * - Jordan Singer: humane minimalism
- * - Dieter Rams: honest, timeless
- * - Muriel Cooper: depth and layering
+ * - Te ao Māori: depth, connection, whakapapa as living stories
+ * - Emil Kowalski: purposeful motion, spring physics
+ * - Maxwell's editorial aesthetic: dark-primary, generous whitespace
+ * - Typography that breathes and honors the narrative
  */
 
 :root {
-  /* Warm neutral palette */
-  --stone-50: #fafaf9;
-  --stone-100: #f5f5f4;
-  --stone-200: #e7e5e4;
-  --stone-300: #d6d3d1;
-  --stone-400: #a8a29e;
-  --stone-500: #78716c;
-  --stone-600: #57534e;
-  --stone-700: #44403c;
-  --stone-800: #292524;
-  --stone-900: #1c1917;
-  --stone-950: #0c0a09;
+  /* Maxwell's color palette - dark primary with editorial feel */
+  --bg-dark: hsl(220, 15%, 4%);
+  --fg-light: hsl(0, 0%, 90%);
+  --muted-mid: hsl(220, 5%, 63%);
+  --accent-warm: hsl(355, 78%, 58%);
 
-  /* Accent - warm terracotta/earth */
-  --accent: #c2856e;
-  --accent-foreground: #ffffff;
+  /* Extended dark mode palette for depth */
+  --bg-elevated: hsl(220, 15%, 6%);
+  --bg-surface: hsl(220, 15%, 8%);
+  --bg-subtle: hsl(220, 10%, 12%);
+  
+  --border-soft: hsl(220, 10%, 20%);
+  --border-muted: hsl(220, 8%, 15%);
+  
+  --text-primary: var(--fg-light);
+  --text-secondary: var(--muted-mid);
+  --text-tertiary: hsl(220, 8%, 45%);
 
-  /* Semantic colors */
-  --background: var(--stone-50);
-  --foreground: var(--stone-900);
-  --muted: var(--stone-100);
-  --muted-foreground: var(--stone-500);
-  --border: var(--stone-200);
-  --ring: var(--stone-300);
+  /* Semantic colors - dark mode primary */
+  --background: var(--bg-dark);
+  --foreground: var(--fg-light);
+  --muted: var(--bg-elevated);
+  --muted-foreground: var(--muted-mid);
+  --border: var(--border-muted);
+  --ring: var(--border-soft);
 
-  /* Card surfaces */
-  --card: #ffffff;
-  --card-foreground: var(--stone-900);
+  /* Card surfaces with subtle elevation */
+  --card: var(--bg-surface);
+  --card-foreground: var(--fg-light);
+  
+  /* Accent colors */
+  --accent: var(--accent-warm);
+  --accent-foreground: hsl(0, 0%, 100%);
 
-  /* Soft shadows - warm tinted */
-  --shadow-sm: 0 1px 2px rgba(28, 25, 23, 0.03);
-  --shadow: 0 1px 3px rgba(28, 25, 23, 0.04), 0 1px 2px rgba(28, 25, 23, 0.03);
-  --shadow-md: 0 4px 6px -1px rgba(28, 25, 23, 0.04), 0 2px 4px -1px rgba(28, 25, 23, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(28, 25, 23, 0.05), 0 4px 6px -2px rgba(28, 25, 23, 0.03);
-  --shadow-xl: 0 20px 25px -5px rgba(28, 25, 23, 0.05), 0 10px 10px -5px rgba(28, 25, 23, 0.02);
+  /* Soft shadows optimized for dark backgrounds */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.18), 0 2px 4px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.24), 0 4px 16px rgba(0, 0, 0, 0.16);
+  --shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.32), 0 8px 24px rgba(0, 0, 0, 0.20);
 
-  /* Radius - softer curves */
-  --radius-sm: 8px;
-  --radius: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  /* Radius - editorial curves */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
-  --font-serif: "Newsreader", Georgia, serif;
+  /* Typography - Sentient for display, General Sans for body */
+  --font-sans: "General Sans", system-ui, -apple-system, sans-serif;
+  --font-serif: "Sentient", Georgia, serif;
+  --font-display: "Sentient", Georgia, serif;
 
-  /* Spacing rhythm */
+  /* Generous spacing rhythm */
   --space-unit: 4px;
 }
 
-@media (prefers-color-scheme: dark) {
+/* Light mode variant - subtle and available but not primary */
+@media (prefers-color-scheme: light) {
   :root {
-    --background: var(--stone-950);
-    --foreground: var(--stone-100);
-    --muted: var(--stone-900);
-    --muted-foreground: var(--stone-400);
-    --border: var(--stone-800);
-    --ring: var(--stone-700);
-    --card: var(--stone-900);
-    --card-foreground: var(--stone-100);
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --background: hsl(0, 0%, 98%);
+    --foreground: hsl(220, 15%, 15%);
+    --muted: hsl(0, 0%, 94%);
+    --muted-foreground: hsl(220, 5%, 45%);
+    --border: hsl(220, 8%, 85%);
+    --ring: hsl(220, 10%, 75%);
+    --card: hsl(0, 0%, 100%);
+    --card-foreground: hsl(220, 15%, 15%);
+    
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -99,6 +109,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  font-variant-ligatures: common-ligatures;
 }
 
 body {
@@ -106,24 +117,60 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  line-height: 1.6;
+  line-height: 1.7; /* More generous line height */
   letter-spacing: -0.011em;
+  font-weight: 400;
 }
 
-/* Apple-inspired typography scale */
+/* Typography that breathes - Sentient for headings */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
-  letter-spacing: -0.022em;
-  line-height: 1.2;
+  font-family: var(--font-display);
+  font-weight: 500; /* Slightly lighter for elegance */
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 1.25em;
+  color: var(--text-primary);
 }
 
-h1 { font-size: 2rem; line-height: 1.15; }
-h2 { font-size: 1.5rem; line-height: 1.2; }
-h3 { font-size: 1.25rem; }
-h4 { font-size: 1.125rem; }
+h1 { 
+  font-size: 2.5rem; 
+  line-height: 1.1; 
+  margin-bottom: 1.5em;
+  font-weight: 600;
+}
+h2 { 
+  font-size: 1.875rem; 
+  line-height: 1.15; 
+  margin-bottom: 1.25em;
+}
+h3 { 
+  font-size: 1.5rem;
+  margin-bottom: 1em;
+}
+h4 { 
+  font-size: 1.25rem;
+  margin-bottom: 0.875em;
+}
+h5 { 
+  font-size: 1.125rem;
+  margin-bottom: 0.75em;
+}
+h6 { 
+  font-size: 1rem;
+  margin-bottom: 0.75em;
+  font-weight: 600;
+}
 
 p {
-  line-height: 1.65;
+  line-height: 1.75; /* Very generous spacing for readability */
+  margin-bottom: 1.5em;
+  color: var(--text-secondary);
+}
+
+.lead {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  color: var(--text-primary);
 }
 
 /* Small text refinement */
@@ -148,10 +195,10 @@ p {
   box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--ring);
 }
 
-/* Scrollbar - minimal */
+/* Scrollbar - minimal and elegant */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -159,21 +206,13 @@ p {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--stone-300);
+  background: var(--border-soft);
   border-radius: var(--radius-full);
+  border: 1px solid var(--bg-dark);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--stone-400);
-}
-
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-thumb {
-    background: var(--stone-700);
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--stone-600);
-  }
+  background: var(--muted-mid);
 }
 
 /* Typography utilities */
@@ -216,16 +255,16 @@ p {
   box-shadow: var(--shadow-md);
 }
 
-/* Animation utilities */
+/* Spring-based Animation System - Emil Kowalski inspired */
 @keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slide-up {
+@keyframes slide-up-spring {
   from {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -233,10 +272,10 @@ p {
   }
 }
 
-@keyframes scale-in {
+@keyframes scale-in-spring {
   from {
     opacity: 0;
-    transform: scale(0.96);
+    transform: scale(0.92);
   }
   to {
     opacity: 1;
@@ -244,14 +283,79 @@ p {
   }
 }
 
+@keyframes slide-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Animation classes with spring easing */
 .animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+  animation: fade-in 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .animate-slide-up {
-  animation: slide-up 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+  animation: slide-up-spring 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .animate-scale-in {
-  animation: scale-in 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  animation: scale-in-spring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-slide-in {
+  animation: slide-in-from-right 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Stagger delay utilities for coordinated animations */
+.animate-delay-75 { animation-delay: 75ms; }
+.animate-delay-150 { animation-delay: 150ms; }
+.animate-delay-225 { animation-delay: 225ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+
+/* Spring physics transitions */
+.transition-spring {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.transition-spring-fast {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.transition-spring-slow {
+  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
