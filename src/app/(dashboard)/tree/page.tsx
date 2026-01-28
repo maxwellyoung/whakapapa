@@ -74,6 +74,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { TreeLoader } from '@/components/ui/loading-spinner'
+import { GrowingTree, SpringNumber } from '@/components/ui/spring-animations'
+import { StaggeredList, SlideIn } from '@/components/ui/page-transition'
 
 // Relationship options for quick connect
 const QUICK_RELATIONSHIP_OPTIONS = [
@@ -1139,24 +1141,27 @@ function TreeContent() {
       </AnimatePresence>
 
       {/* Relationship Legend - hidden on mobile */}
-      <div className="hidden md:block absolute top-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3 z-20 min-w-[160px]">
+      <SlideIn direction="right" delay={0.5}>
+        <div className="hidden md:block absolute top-4 right-4 bg-card/90 backdrop-blur-xl rounded-xl border border-border shadow-lg p-3 z-20 min-w-[160px]">
         {/* Stats */}
-        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-stone-200/80 dark:border-stone-700/80">
-          <Users className="h-3.5 w-3.5 text-stone-400" />
-          <span className="text-xs font-medium text-stone-600 dark:text-stone-300">
-            {people.length} {people.length === 1 ? 'person' : 'people'}
+        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border">
+          <Users className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-foreground">
+            <SpringNumber value={people.length} />
+            <span className="ml-1">{people.length === 1 ? 'person' : 'people'}</span>
           </span>
           {relationshipCount > 0 && (
             <>
-              <span className="text-stone-300 dark:text-stone-600">·</span>
-              <span className="text-xs text-stone-500 dark:text-stone-400">
-                {relationshipCount} {relationshipCount === 1 ? 'link' : 'links'}
+              <span className="text-muted-foreground">·</span>
+              <span className="text-xs text-muted-foreground">
+                <SpringNumber value={relationshipCount} />
+                <span className="ml-1">{relationshipCount === 1 ? 'link' : 'links'}</span>
               </span>
             </>
           )}
         </div>
         {/* Relationship lines */}
-        <p className="text-[10px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">
           Relationships
         </p>
         <div className="space-y-2">
@@ -1203,7 +1208,7 @@ function TreeContent() {
           </div>
         </div>
         {/* Status indicators */}
-        <p className="text-[10px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500 mt-3 mb-2">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mt-3 mb-2">
           Status
         </p>
         <div className="space-y-2">
@@ -1211,38 +1216,46 @@ function TreeContent() {
             <div className="w-5 flex items-center justify-center">
               <div className="w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-stone-800 shadow-sm" />
             </div>
-            <span className="text-xs text-stone-600 dark:text-stone-400">Living</span>
+            <span className="text-xs text-muted-foreground">Living</span>
           </div>
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
-              <div className="w-3 h-3 bg-stone-200 dark:bg-stone-700 rounded-full border-2 border-white dark:border-stone-800" />
+              <div className="w-3 h-3 bg-muted rounded-full border-2 border-card" />
             </div>
-            <span className="text-xs text-stone-600 dark:text-stone-400">Deceased</span>
+            <span className="text-xs text-muted-foreground">Deceased</span>
           </div>
         </div>
-        <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700">
-          <p className="text-[10px] text-stone-400 dark:text-stone-500 leading-relaxed">
+        <div className="mt-3 pt-3 border-t border-border">
+          <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
             ⌘F search · Arrow keys navigate<br />
             Double-click to view · Right-click for menu
           </p>
         </div>
-      </div>
+        </div>
+      </SlideIn>
 
       {/* Mobile legend */}
       <div className="md:hidden absolute bottom-20 left-4 right-4 z-10">
         <div className="flex flex-col gap-2 items-center">
           {/* Stats pill */}
-          <div className="bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-1.5">
-            <span className="text-[11px] font-medium text-stone-600 dark:text-stone-300">
-              {people.length} {people.length === 1 ? 'person' : 'people'}
-              {relationshipCount > 0 && ` · ${relationshipCount} ${relationshipCount === 1 ? 'link' : 'links'}`}
+          <div className="bg-card/90 backdrop-blur-xl rounded-full border border-border shadow-lg px-4 py-1.5">
+            <span className="text-[11px] font-medium text-foreground">
+              <SpringNumber value={people.length} />
+              <span className="ml-1">{people.length === 1 ? 'person' : 'people'}</span>
+              {relationshipCount > 0 && (
+                <>
+                  <span> · </span>
+                  <SpringNumber value={relationshipCount} />
+                  <span className="ml-1">{relationshipCount === 1 ? 'link' : 'links'}</span>
+                </>
+              )}
             </span>
           </div>
           {/* Legend row */}
-          <div className="flex justify-center gap-3 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-2">
+          <div className="flex justify-center gap-3 bg-card/90 backdrop-blur-xl rounded-full border border-border shadow-lg px-4 py-2">
             <div className="flex items-center gap-1.5">
               <div className="w-4 h-0.5 bg-indigo-500 rounded-full" />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Parent</span>
+              <span className="text-[10px] text-muted-foreground">Parent</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div
@@ -1252,7 +1265,7 @@ function TreeContent() {
                     'repeating-linear-gradient(90deg, #ec4899, #ec4899 3px, transparent 3px, transparent 5px)',
                 }}
               />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Partner</span>
+              <span className="text-[10px] text-muted-foreground">Partner</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div
@@ -1262,11 +1275,11 @@ function TreeContent() {
                     'repeating-linear-gradient(90deg, #10b981, #10b981 2px, transparent 2px, transparent 4px)',
                 }}
               />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Sibling</span>
+              <span className="text-[10px] text-muted-foreground">Sibling</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white dark:border-stone-800" />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Living</span>
+              <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full border border-card" />
+              <span className="text-[10px] text-muted-foreground">Living</span>
             </div>
           </div>
         </div>
