@@ -84,24 +84,7 @@
   --space-unit: 4px;
 }
 
-/* Light mode variant - subtle and available but not primary */
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: hsl(0, 0%, 98%);
-    --foreground: hsl(220, 15%, 15%);
-    --muted: hsl(0, 0%, 94%);
-    --muted-foreground: hsl(220, 5%, 45%);
-    --border: hsl(220, 8%, 85%);
-    --ring: hsl(220, 10%, 75%);
-    --card: hsl(0, 0%, 100%);
-    --card-foreground: hsl(220, 15%, 15%);
-    
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-}
+/* Dark mode only. No light mode variant. This is the aesthetic. */
 
 @theme inline {
   --color-background: var(--background);
