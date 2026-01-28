@@ -11,7 +11,7 @@ export function Mihimihi() {
 
   useEffect(() => {
     // Check if mihimihi has been acknowledged in this session
-    const acknowledged = sessionStorage.getItem('mihimihi-acknowledged')
+    const acknowledged = localStorage.getItem('mihimihi-acknowledged')
     if (!acknowledged) {
       // Show after a brief moment to allow page to settle
       const timer = setTimeout(() => setIsVisible(true), 1000)
@@ -23,7 +23,7 @@ export function Mihimihi() {
   const handleAcknowledge = () => {
     setIsVisible(false)
     setHasBeenShown(true)
-    sessionStorage.setItem('mihimihi-acknowledged', 'true')
+    localStorage.setItem('mihimihi-acknowledged', 'true')
   }
 
   if (hasBeenShown && !isVisible) return null
@@ -92,7 +92,7 @@ export function Mihimihi() {
                   <div className="space-y-4">
                     <p className="text-muted-foreground">
                       We acknowledge that the word <em>whakapapa</em> carries deep cultural significance 
-                      in te ao Māori. It represents far more than genealogy—it embodies the sacred 
+                      in te ao Māori. It represents far more than genealogy. It embodies the sacred 
                       connections between all living things, the stories that flow through generations, 
                       and the responsibility we have to honor those who came before us.
                     </p>
@@ -107,7 +107,7 @@ export function Mihimihi() {
                   <div className="border-l-2 border-accent/30 pl-4 py-2 bg-muted/30 rounded-r-lg">
                     <p className="text-xs text-muted-foreground italic">
                       "Ko au ko koe, ko koe ko au"<br />
-                      <span className="text-xs">I am you, and you are me—we are all connected</span>
+                      <span className="text-xs">I am you, and you are me. We are all connected</span>
                     </p>
                   </div>
 
