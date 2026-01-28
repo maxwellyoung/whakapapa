@@ -1,17 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Newsreader } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const newsreader = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-serif",
-});
+// Load fonts via CSS imports for better control
+// Sentient for display headings, General Sans for body text
 
 export const metadata: Metadata = {
   title: "Whakapapa",
@@ -56,7 +48,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className={`${inter.variable} ${newsreader.variable} antialiased`}>
+      <body className="antialiased">
         {children}
         <Toaster richColors position="bottom-right" />
         <ServiceWorkerRegistration />

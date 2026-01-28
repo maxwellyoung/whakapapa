@@ -6,6 +6,7 @@ import { MobileNav } from '@/components/layout/mobile-nav'
 import { CreateWorkspace } from '@/components/onboarding/create-workspace'
 import { AlertCircle, RefreshCw, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { TreeLoader } from '@/components/ui/loading-spinner'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
@@ -16,11 +17,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   // Still loading
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-stone-50 dark:bg-stone-950">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-stone-200 border-t-stone-600 dark:border-stone-700 dark:border-t-stone-300" />
-          <span className="text-sm text-stone-400 dark:text-stone-500">Loading...</span>
-        </div>
+      <div className="flex h-screen items-center justify-center bg-background">
+        <TreeLoader />
       </div>
     )
   }
@@ -34,15 +32,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     }
 
     return (
-      <div className="flex h-screen items-center justify-center bg-stone-50 dark:bg-stone-950">
-        <div className="flex max-w-md flex-col items-center gap-4 rounded-xl border border-stone-200 bg-white p-8 text-center shadow-sm dark:border-stone-800 dark:bg-stone-900">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-            <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="flex max-w-md flex-col items-center gap-4 rounded-xl border border-border bg-card p-8 text-center shadow-lg animate-scale-in">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 animate-breathe">
+            <AlertCircle className="h-6 w-6 text-accent" />
           </div>
-          <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+          <h2 className="text-lg font-serif font-medium text-foreground">
             Unable to load workspaces
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400">
+          <p className="text-sm text-muted-foreground leading-relaxed">
             {error}
           </p>
           <div className="flex gap-3">
@@ -76,7 +74,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
       </div>
 
-      <main className="flex-1 overflow-auto bg-stone-50/50 dark:bg-stone-950/50">
+      <main className="flex-1 overflow-auto bg-background">
         {children}
       </main>
     </div>

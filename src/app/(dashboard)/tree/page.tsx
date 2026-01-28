@@ -73,6 +73,9 @@ import type { Person, Relationship, RelationshipType } from '@/types'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { TreeLoader } from '@/components/ui/loading-spinner'
+import { GrowingTree, SpringNumber } from '@/components/ui/spring-animations'
+import { StaggeredList, SlideIn } from '@/components/ui/page-transition'
 
 // Relationship options for quick connect
 const QUICK_RELATIONSHIP_OPTIONS = [
@@ -679,73 +682,156 @@ function TreeContent() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="h-12 w-12 animate-spin rounded-full border-3 border-stone-200 border-t-indigo-500 dark:border-stone-700 dark:border-t-indigo-400" />
-          </div>
-          <span className="text-sm font-medium text-stone-500 dark:text-stone-400">
-            Loading family tree...
-          </span>
-        </div>
+      <div className="flex h-full items-center justify-center bg-background">
+        <TreeLoader />
       </div>
     )
   }
 
   if (!currentWorkspace) {
     return (
-      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
-        <p className="text-stone-400 dark:text-stone-500">Select a workspace</p>
+      <div className="flex h-full items-center justify-center bg-background">
+        <p className="text-muted-foreground">Select a workspace</p>
       </div>
     )
   }
 
   if (nodes.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900 px-4">
+      <div className="flex h-full items-center justify-center bg-gradient-to-br from-background via-bg-elevated to-bg-surface px-4">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          transition={{ 
+            type: 'spring', 
+            stiffness: 300, 
+            damping: 30,
+            duration: 0.6 
+          }}
           className="text-center max-w-md"
         >
           <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1, duration: 0.4, type: 'spring', stiffness: 200 }}
-            className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:via-purple-500/15 dark:to-pink-500/20 shadow-inner"
+            initial={{ scale: 0.8, opacity: 0, rotateY: -15 }}
+            animate={{ scale: 1, opacity: 1, rotateY: 0 }}
+            transition={{ 
+              delay: 0.2, 
+              type: 'spring', 
+              stiffness: 400, 
+              damping: 25,
+              duration: 0.5 
+            }}
+            className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br from-accent/5 via-accent/10 to-accent/5 shadow-lg border border-accent/10 animate-float"
           >
-            <span className="text-4xl">🌿</span>
+            <span className="text-5xl">🌿</span>
           </motion.div>
-          <h2 className="text-2xl font-semibold text-stone-800 dark:text-stone-200 mb-3">
+          <motion.h2 
+            className="text-3xl font-serif font-medium text-foreground mb-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              delay: 0.3, 
+              type: 'spring', 
+              stiffness: 400, 
+              damping: 25 
+            }}
+          >
             Start building your family tree
-          </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-4 leading-relaxed">
+          </motion.h2>
+          <motion.p 
+            className="text-base text-muted-foreground mb-6 leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              delay: 0.35, 
+              type: 'spring', 
+              stiffness: 400, 
+              damping: 25 
+            }}
+          >
             Every family story begins with a single person. Add your first family member
             and watch your whakapapa come to life.
-          </p>
-          <p className="text-xs text-stone-400 dark:text-stone-500 mb-8 leading-relaxed">
+          </motion.p>
+          <motion.p 
+            className="text-sm text-muted-foreground/80 mb-10 leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ 
+              delay: 0.4, 
+              type: 'spring', 
+              stiffness: 400, 
+              damping: 25 
+            }}
+          >
             You can add relationships, stories, photos, and documents as you go.
             There&apos;s no wrong way to start — begin with whoever comes to mind first.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Link href="/people/new">
-              <Button className="w-full h-12 text-base bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 shadow-lg shadow-indigo-500/25 rounded-xl">
-                <UserPlus className="mr-2 h-5 w-5" />
-                Add your first person
-              </Button>
-            </Link>
-            <Link href="/import">
-              <Button variant="outline" className="w-full h-11 rounded-xl">
-                📥 Import from GEDCOM
-              </Button>
-            </Link>
-            <Link href="/people">
-              <Button variant="ghost" className="w-full h-10 text-stone-500 dark:text-stone-400">
-                View people list →
-              </Button>
-            </Link>
-          </div>
+          </motion.p>
+          <motion.div 
+            className="flex flex-col gap-3"
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: {},
+              show: {
+                transition: {
+                  staggerChildren: 0.1,
+                  delayChildren: 0.4
+                }
+              }
+            }}
+          >
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20, scale: 0.95 },
+                show: { 
+                  opacity: 1, 
+                  y: 0, 
+                  scale: 1,
+                  transition: { type: 'spring', stiffness: 400, damping: 25 }
+                }
+              }}
+            >
+              <Link href="/people/new">
+                <Button className="w-full h-12 text-base bg-gradient-to-r from-accent to-accent/90 hover:from-accent/90 hover:to-accent/80 shadow-lg shadow-accent/25 rounded-xl transition-spring">
+                  <UserPlus className="mr-2 h-5 w-5" />
+                  Add your first person
+                </Button>
+              </Link>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20, scale: 0.95 },
+                show: { 
+                  opacity: 1, 
+                  y: 0, 
+                  scale: 1,
+                  transition: { type: 'spring', stiffness: 400, damping: 25 }
+                }
+              }}
+            >
+              <Link href="/import">
+                <Button variant="outline" className="w-full h-11 rounded-xl transition-spring">
+                  📥 Import from GEDCOM
+                </Button>
+              </Link>
+            </motion.div>
+            <motion.div
+              variants={{
+                hidden: { opacity: 0, y: 20, scale: 0.95 },
+                show: { 
+                  opacity: 1, 
+                  y: 0, 
+                  scale: 1,
+                  transition: { type: 'spring', stiffness: 400, damping: 25 }
+                }
+              }}
+            >
+              <Link href="/people">
+                <Button variant="ghost" className="w-full h-10 text-muted-foreground hover:text-foreground transition-spring">
+                  View people list →
+                </Button>
+              </Link>
+            </motion.div>
+          </motion.div>
         </motion.div>
       </div>
     )
@@ -1055,24 +1141,27 @@ function TreeContent() {
       </AnimatePresence>
 
       {/* Relationship Legend - hidden on mobile */}
-      <div className="hidden md:block absolute top-4 right-4 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-xl border border-stone-200/80 dark:border-stone-700/80 shadow-lg p-3 z-20 min-w-[160px]">
+      <SlideIn direction="right" delay={0.5}>
+        <div className="hidden md:block absolute top-4 right-4 bg-card/90 backdrop-blur-xl rounded-xl border border-border shadow-lg p-3 z-20 min-w-[160px]">
         {/* Stats */}
-        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-stone-200/80 dark:border-stone-700/80">
-          <Users className="h-3.5 w-3.5 text-stone-400" />
-          <span className="text-xs font-medium text-stone-600 dark:text-stone-300">
-            {people.length} {people.length === 1 ? 'person' : 'people'}
+        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border">
+          <Users className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-xs font-medium text-foreground">
+            <SpringNumber value={people.length} />
+            <span className="ml-1">{people.length === 1 ? 'person' : 'people'}</span>
           </span>
           {relationshipCount > 0 && (
             <>
-              <span className="text-stone-300 dark:text-stone-600">·</span>
-              <span className="text-xs text-stone-500 dark:text-stone-400">
-                {relationshipCount} {relationshipCount === 1 ? 'link' : 'links'}
+              <span className="text-muted-foreground">·</span>
+              <span className="text-xs text-muted-foreground">
+                <SpringNumber value={relationshipCount} />
+                <span className="ml-1">{relationshipCount === 1 ? 'link' : 'links'}</span>
               </span>
             </>
           )}
         </div>
         {/* Relationship lines */}
-        <p className="text-[10px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500 mb-2">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mb-2">
           Relationships
         </p>
         <div className="space-y-2">
@@ -1119,7 +1208,7 @@ function TreeContent() {
           </div>
         </div>
         {/* Status indicators */}
-        <p className="text-[10px] font-medium uppercase tracking-wider text-stone-400 dark:text-stone-500 mt-3 mb-2">
+        <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground mt-3 mb-2">
           Status
         </p>
         <div className="space-y-2">
@@ -1127,38 +1216,46 @@ function TreeContent() {
             <div className="w-5 flex items-center justify-center">
               <div className="w-3 h-3 bg-emerald-400 rounded-full border-2 border-white dark:border-stone-800 shadow-sm" />
             </div>
-            <span className="text-xs text-stone-600 dark:text-stone-400">Living</span>
+            <span className="text-xs text-muted-foreground">Living</span>
           </div>
           <div className="flex items-center gap-2.5">
             <div className="w-5 flex items-center justify-center">
-              <div className="w-3 h-3 bg-stone-200 dark:bg-stone-700 rounded-full border-2 border-white dark:border-stone-800" />
+              <div className="w-3 h-3 bg-muted rounded-full border-2 border-card" />
             </div>
-            <span className="text-xs text-stone-600 dark:text-stone-400">Deceased</span>
+            <span className="text-xs text-muted-foreground">Deceased</span>
           </div>
         </div>
-        <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700">
-          <p className="text-[10px] text-stone-400 dark:text-stone-500 leading-relaxed">
+        <div className="mt-3 pt-3 border-t border-border">
+          <p className="text-[10px] text-muted-foreground/70 leading-relaxed">
             ⌘F search · Arrow keys navigate<br />
             Double-click to view · Right-click for menu
           </p>
         </div>
-      </div>
+        </div>
+      </SlideIn>
 
       {/* Mobile legend */}
       <div className="md:hidden absolute bottom-20 left-4 right-4 z-10">
         <div className="flex flex-col gap-2 items-center">
           {/* Stats pill */}
-          <div className="bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-1.5">
-            <span className="text-[11px] font-medium text-stone-600 dark:text-stone-300">
-              {people.length} {people.length === 1 ? 'person' : 'people'}
-              {relationshipCount > 0 && ` · ${relationshipCount} ${relationshipCount === 1 ? 'link' : 'links'}`}
+          <div className="bg-card/90 backdrop-blur-xl rounded-full border border-border shadow-lg px-4 py-1.5">
+            <span className="text-[11px] font-medium text-foreground">
+              <SpringNumber value={people.length} />
+              <span className="ml-1">{people.length === 1 ? 'person' : 'people'}</span>
+              {relationshipCount > 0 && (
+                <>
+                  <span> · </span>
+                  <SpringNumber value={relationshipCount} />
+                  <span className="ml-1">{relationshipCount === 1 ? 'link' : 'links'}</span>
+                </>
+              )}
             </span>
           </div>
           {/* Legend row */}
-          <div className="flex justify-center gap-3 bg-white/90 dark:bg-stone-900/90 backdrop-blur-xl rounded-full border border-stone-200/80 dark:border-stone-700/80 shadow-lg px-4 py-2">
+          <div className="flex justify-center gap-3 bg-card/90 backdrop-blur-xl rounded-full border border-border shadow-lg px-4 py-2">
             <div className="flex items-center gap-1.5">
               <div className="w-4 h-0.5 bg-indigo-500 rounded-full" />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Parent</span>
+              <span className="text-[10px] text-muted-foreground">Parent</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div
@@ -1168,7 +1265,7 @@ function TreeContent() {
                     'repeating-linear-gradient(90deg, #ec4899, #ec4899 3px, transparent 3px, transparent 5px)',
                 }}
               />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Partner</span>
+              <span className="text-[10px] text-muted-foreground">Partner</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div
@@ -1178,11 +1275,11 @@ function TreeContent() {
                     'repeating-linear-gradient(90deg, #10b981, #10b981 2px, transparent 2px, transparent 4px)',
                 }}
               />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Sibling</span>
+              <span className="text-[10px] text-muted-foreground">Sibling</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white dark:border-stone-800" />
-              <span className="text-[10px] text-stone-500 dark:text-stone-400">Living</span>
+              <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full border border-card" />
+              <span className="text-[10px] text-muted-foreground">Living</span>
             </div>
           </div>
         </div>
