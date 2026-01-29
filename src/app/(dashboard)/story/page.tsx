@@ -21,7 +21,7 @@ interface PersonWithConnections extends Person {
 }
 
 const springConfig = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 400,
   damping: 30
 }
