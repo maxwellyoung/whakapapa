@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { QuickCapture } from '@/components/capture/quick-capture'
 import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { StorySearch } from '@/components/search/story-search'
 import type { Person } from '@/types'
 
 interface Stats {
@@ -192,6 +193,18 @@ export default function DashboardPage() {
       <div className="mb-8">
         <QuickCapture />
       </div>
+
+      {/* Story Search - Only show if there are people to search */}
+      {stats.people > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-8"
+        >
+          <StorySearch />
+        </motion.div>
+      )}
 
       {/* Stats & Quick Links */}
       <div className="grid gap-4 md:grid-cols-4 mb-8">
