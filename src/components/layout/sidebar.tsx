@@ -16,6 +16,7 @@ import {
   TreePine,
   ChefHat,
   ScanLine,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ import { SearchCommand } from './search-command'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
+  { href: '/story', label: 'Story Mode', icon: BookOpen },
   { href: '/people', label: 'People', icon: Users },
   { href: '/tree', label: 'Family Tree', icon: GitBranch },
   { href: '/sources', label: 'Sources', icon: FileText },
