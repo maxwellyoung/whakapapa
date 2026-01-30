@@ -54,11 +54,11 @@ export function PersonCard({ person, className }: PersonCardProps) {
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
         className={cn(
-          'group relative rounded-2xl border border-stone-200/60 bg-white/80 p-4 backdrop-blur-sm',
-          'shadow-sm shadow-stone-900/5',
-          'dark:border-stone-800/60 dark:bg-stone-900/80',
-          'transition-all duration-200 hover:border-stone-300 hover:shadow-md hover:shadow-stone-900/10',
-          'dark:hover:border-stone-700 dark:hover:shadow-stone-950/20',
+          'group relative rounded-2xl p-4 backdrop-blur-sm',
+          'border border-[var(--border)] bg-[var(--card)]',
+          'shadow-sm',
+          'transition-all duration-200',
+          'hover:border-[var(--border-soft)] hover:shadow-md',
           className
         )}
       >
