@@ -1,4 +1,8 @@
 @import "tailwindcss";
+
+/* Force class-based dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @import url('https://fonts.googleapis.com/css2?family=General+Sans:ital,wght@0,200..700;1,200..700&display=swap');
 
 /* Sentient Font - Premium serif for display headings */
