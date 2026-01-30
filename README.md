@@ -52,21 +52,42 @@ Whakapapa is built to be that place. A warm, private space where your family can
 
 📋 **Interview Prompts** — Not sure what to ask? Built-in prompts help guide conversations: childhood memories, career stories, family traditions, life advice.
 
+## Live Demo
+
+🌐 **[whakapapa.vercel.app](https://whakapapa.vercel.app)** — Experience the app live
+
 ## Screenshots
 
-> *Coming soon — the app is under active development.*
+![Whakapapa Landing Page](https://whakapapa.vercel.app/og-image.svg)
+
+*The landing page showcases the cultural significance of whakapapa with elegant typography and subtle animations.*
 
 <details>
 <summary>Preview: Family Tree View</summary>
 
 The interactive tree uses dagre for hierarchical layout with color-coded relationship lines:
 - **Indigo arrows** → Parent-child
-- **Pink dashed** → Partners/spouses
+- **Pink dashed** → Partners/spouses  
 - **Green dotted** → Siblings
 
-Zoom, search (⌘F), keyboard navigation, and right-click context menus are all built in.
+Features include:
+- ⌘K search across all people
+- Keyboard navigation (arrows, enter)
+- Right-click context menus
+- Smooth zoom and pan
+- Responsive layout
 
 </details>
+
+## Design Philosophy
+
+**Cultural Respect** — Built with deep respect for Māori culture and the profound meaning of whakapapa as more than just genealogy.
+
+**Motion with Purpose** — Inspired by Emil Kowalski's work, every animation serves the narrative and feels alive through spring physics.
+
+**Editorial Aesthetic** — Clean typography using Newsreader serif for headings, generous whitespace, and a dark-first design language.
+
+**Stories Over Data** — While other genealogy tools focus on dates and facts, Whakapapa prioritizes the stories that make families human.
 
 ## Tech Stack
 

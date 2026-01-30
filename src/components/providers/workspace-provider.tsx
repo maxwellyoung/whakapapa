@@ -37,11 +37,17 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       `)
 
     if (error) {
-      console.error('Failed to fetch workspaces:', error.message)
+      // Log error details for development only
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to fetch workspaces:', error.message)
+      }
+      
       // Check if this is an auth issue
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
-        console.error('No authenticated user - session may have expired')
+        if (process.env.NODE_ENV === 'development') {
+          console.error('No authenticated user - session may have expired')
+        }
         setError('Your session has expired. Please sign in again.')
       } else {
         setError('Unable to load your workspaces. Please try refreshing the page.')

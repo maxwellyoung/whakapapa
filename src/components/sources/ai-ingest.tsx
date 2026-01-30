@@ -69,7 +69,7 @@ export function AIIngest({ sourceId, initialText = '', onComplete }: AIIngestPro
         toast.info('No people found in the text')
       }
     } catch (error) {
-      console.error('Ingest error:', error)
+      if (process.env.NODE_ENV === 'development') console.error('Ingest error:', error)
       toast.error('Failed to process text')
     } finally {
       setProcessing(false)

@@ -98,7 +98,7 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
         toast.success(`Extracted ${text.split(/\s+/).length} words`)
       }
     } catch (error) {
-      console.error('OCR error:', error)
+      if (process.env.NODE_ENV === 'development') console.error('OCR error:', error)
       toast.error('Failed to process image')
     } finally {
       setIsProcessing(false)

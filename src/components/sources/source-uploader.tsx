@@ -111,7 +111,9 @@ export function SourceUploader({ onComplete, onCancel }: SourceUploaderProps) {
       toast.success(`"${title.trim()}" has been added to your sources`)
       onComplete({ id: source.id, title: source.title })
     } catch (error) {
-      console.error('Upload error:', error)
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Upload error:', error)
+      }
       toast.error(getErrorToast('upload_file'))
     } finally {
       setUploading(false)

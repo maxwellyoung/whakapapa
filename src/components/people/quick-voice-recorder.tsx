@@ -92,7 +92,7 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
         setRecordingTime((t) => t + 1)
       }, 1000)
     } catch (error) {
-      console.error('Microphone error:', error)
+      if (process.env.NODE_ENV === 'development') console.error('Microphone error:', error)
       toast.error('Could not access microphone. Please check permissions.')
     }
   }
@@ -189,7 +189,7 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
       setIsOpen(false)
       onMemoryAdded?.()
     } catch (error) {
-      console.error('Save error:', error)
+      if (process.env.NODE_ENV === 'development') console.error('Save error:', error)
       toast.error('Failed to save recording')
     } finally {
       setSaving(false)

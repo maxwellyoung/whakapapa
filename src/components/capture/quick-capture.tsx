@@ -115,7 +115,10 @@ export function QuickCapture() {
         toast.info('No people found in the text. Try adding more detail.')
       }
     } catch (error) {
-      console.error('Extract error:', error)
+      // Log error details for development only
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Extract error:', error)
+      }
       toast.error(getErrorToast('process_text'))
     } finally {
       setIsProcessing(false)

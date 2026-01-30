@@ -64,7 +64,7 @@ export function PhotoUploader({ currentPhotoUrl, onPhotoChange, personId }: Phot
       onPhotoChange(publicUrl)
       toast.success('Photo uploaded')
     } catch (error) {
-      console.error('Upload error:', error)
+      if (process.env.NODE_ENV === 'development') console.error('Upload error:', error)
       toast.error('Failed to upload photo')
       setPreviewUrl(currentPhotoUrl || null)
     } finally {
@@ -97,7 +97,7 @@ export function PhotoUploader({ currentPhotoUrl, onPhotoChange, personId }: Phot
       setPreviewUrl(null)
       toast.success('Photo removed')
     } catch (error) {
-      console.error('Remove error:', error)
+      if (process.env.NODE_ENV === 'development') console.error('Remove error:', error)
       toast.error('Failed to remove photo')
     } finally {
       setUploading(false)
