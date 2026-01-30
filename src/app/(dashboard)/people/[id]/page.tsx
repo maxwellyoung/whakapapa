@@ -21,6 +21,7 @@ import { RelationshipFinder } from '@/components/people/relationship-finder'
 import { PersonMemories } from '@/components/people/person-memories'
 import { InterviewPrompts } from '@/components/people/interview-prompts'
 import { QuickVoiceRecorder } from '@/components/people/quick-voice-recorder'
+import { PersonStory } from '@/components/people/person-story'
 import { Skeleton, SkeletonAvatar, SkeletonText } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import type { Person, Relationship } from '@/types'
@@ -38,6 +39,17 @@ export default function PersonDetailPage() {
   const params = useParams()
   const personId = params.id as string
   const { currentWorkspace, userRole } = useWorkspace()
+  
+  // Check for view parameter to default to story view
+  const [defaultTab, setDefaultTab] = useState('timeline')
+  
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const view = urlParams.get('view')
+    if (view === 'story') {
+      setDefaultTab('story')
+    }
+  }, [])
 
   const [person, setPerson] = useState<Person | null>(null)
   const [relationships, setRelationships] = useState<(Relationship & { person: Person })[]>([])
@@ -329,8 +341,12 @@ export default function PersonDetailPage() {
         )}
 
         {/* Tabbed Content */}
-        <Tabs defaultValue="timeline" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="story" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Story</span>
+            </TabsTrigger>
             <TabsTrigger value="timeline" className="gap-2">
               <Clock className="h-4 w-4" />
               <span className="hidden sm:inline">Timeline</span>
@@ -340,8 +356,8 @@ export default function PersonDetailPage() {
               <span className="hidden sm:inline">Family</span>
             </TabsTrigger>
             <TabsTrigger value="stories" className="gap-2">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Stories</span>
+              <MessageCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Memories</span>
             </TabsTrigger>
             <TabsTrigger value="interview" className="gap-2">
               <MessageCircle className="h-4 w-4" />
@@ -352,6 +368,11 @@ export default function PersonDetailPage() {
               <span className="hidden sm:inline">Media</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* Story Tab */}
+          <TabsContent value="story">
+            <PersonStory person={person} />
+          </TabsContent>
 
           {/* Timeline Tab */}
           <TabsContent value="timeline" className="space-y-6">
