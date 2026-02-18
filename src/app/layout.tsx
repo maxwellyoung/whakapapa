@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Toaster } from "@/components/ui/sonner";
+import { ReducedMotionProvider } from "@/components/providers/reduced-motion-provider";
 import "./globals.css";
 
 // Load fonts via CSS imports for better control
@@ -84,7 +85,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#0c0a09" />
       </head>
       <body className="antialiased">
+        <ReducedMotionProvider>
         {children}
+        </ReducedMotionProvider>
         <Toaster richColors position="bottom-right" />
         <ServiceWorkerRegistration />
       </body>
