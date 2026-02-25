@@ -267,3 +267,20 @@ Enforced via `entity_visibility` table and RLS policies.
 - Main development on feature branches
 - Commit messages follow conventional format
 - Push changes to feature branch before PR
+
+
+## Relevant Skills
+
+Installed agent skills for this project's stack:
+
+- **vercel-react-best-practices** — React/Next.js performance optimization
+- **webapp-testing** — Playwright-based UI testing and screenshots
+- **web-design-guidelines** — Web Interface Guidelines compliance
+- **typescript-advanced-types** — Advanced generics, conditional types, type safety
+- **ui-animation** — Motion, easing, springs, reduced-motion
+- **design-motion-principles** — Animation audit (Kowalski, Krehel, Tompkins)
+- **accessibility-compliance** — WCAG 2.2, ARIA, keyboard navigation
+- **fixing-accessibility** — Diagnose and fix a11y issues
+- **supabase-postgres-best-practices** — Query optimization, schema design, RLS policies
+- **nextjs-supabase-auth** — Auth middleware, protected routes, SSR auth
+- **using-git-worktrees** — Isolated feature branches for parallel work
