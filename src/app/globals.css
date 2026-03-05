@@ -1,9 +1,8 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=General+Sans:ital,wght@0,200..700;1,200..700&display=swap');
 
 /* Force class-based dark mode for Tailwind v4 */
 @custom-variant dark (&:where(.dark, .dark *));
-
-@import url('https://fonts.googleapis.com/css2?family=General+Sans:ital,wght@0,200..700;1,200..700&display=swap');
 
 /* Sentient Font - Premium serif for display headings */
 @font-face {
@@ -64,6 +63,24 @@
   /* Accent colors */
   --accent: var(--accent-warm);
   --accent-foreground: hsl(0, 0%, 100%);
+  --accent-soft: hsl(28, 42%, 58%);
+  --signal-cool: hsl(196, 24%, 66%);
+
+  /* Landing-specific archive surfaces */
+  --archive-bg: hsl(210, 18%, 7%);
+  --archive-bg-elevated: hsl(210, 16%, 10%);
+  --archive-panel: rgba(16, 18, 21, 0.84);
+  --archive-panel-strong: rgba(20, 23, 27, 0.94);
+  --archive-panel-elevated: rgba(25, 29, 34, 0.92);
+  --archive-text: hsl(38, 22%, 88%);
+  --archive-muted: hsl(30, 10%, 67%);
+  --archive-border: rgba(224, 209, 186, 0.11);
+  --archive-glow: rgba(176, 116, 73, 0.14);
+  --archive-grid: rgba(179, 165, 146, 0.08);
+  --panel: var(--archive-panel);
+  --panel-elevated: var(--archive-panel-elevated);
+  --border-etched: var(--archive-border);
+  --text-muted: var(--archive-muted);
 
   /* Soft shadows optimized for dark backgrounds */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
@@ -222,6 +239,113 @@ p {
 
 .font-serif {
   font-family: var(--font-serif);
+}
+
+.archive-panel {
+  background: var(--archive-panel);
+  border: 1px solid var(--archive-border);
+  border-radius: 24px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 20px 50px rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.archive-panel-strong {
+  background: var(--archive-panel-strong);
+  border: 1px solid var(--archive-border);
+  border-radius: 24px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.archive-noise::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--archive-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--archive-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 85%);
+  opacity: 0.45;
+}
+
+.archive-dot-grid {
+  background-image: radial-gradient(circle, var(--archive-grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.archive-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--archive-muted);
+}
+
+.archive-rule-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--archive-muted);
+}
+
+.archive-rule-label::before {
+  content: "";
+  width: 1.75rem;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+}
+
+.archive-meta {
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--archive-muted);
+}
+
+.archive-caption {
+  margin-bottom: 0;
+  font-size: 0.98rem;
+  line-height: 1.8;
+  color: var(--archive-muted);
+}
+
+.archive-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  border: 1px solid var(--archive-border);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--archive-text);
+}
+
+.archive-cta {
+  transition:
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.archive-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px var(--archive-glow), 0 18px 30px rgba(0, 0, 0, 0.22);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 /* Subtle gradient backgrounds */
