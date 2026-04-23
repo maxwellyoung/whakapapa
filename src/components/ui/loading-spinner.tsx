@@ -9,7 +9,7 @@ interface LoadingSpinnerProps {
   text?: string
 }
 
-export function LoadingSpinner({ size = 'md', className, text }: LoadingSpinnerProps) {
+function LoadingSpinner({ size = 'md', className, text }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'h-5 w-5',
     md: 'h-8 w-8',
@@ -89,7 +89,7 @@ export function LoadingSpinner({ size = 'md', className, text }: LoadingSpinnerP
 }
 
 // Alternative minimalist loader
-export function PulseLoader({ className }: { className?: string }) {
+function PulseLoader({ className }: { className?: string }) {
   return (
     <div className={cn("flex items-center justify-center", className)}>
       <motion.div

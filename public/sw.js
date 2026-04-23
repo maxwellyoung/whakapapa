@@ -1,3 +1,4 @@
+// fallow-ignore-file unused-file
 // Whakapapa Service Worker
 const CACHE_NAME = 'whakapapa-v1'
 const OFFLINE_URL = '/offline.html'

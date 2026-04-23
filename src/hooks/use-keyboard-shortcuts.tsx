@@ -27,7 +27,7 @@ const isInputElement = (el: Element | null): boolean => {
   )
 }
 
-export function useKeyboardShortcuts(shortcuts: Shortcut[]) {
+function useKeyboardShortcuts(shortcuts: Shortcut[]) {
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       // Don't trigger shortcuts when typing in inputs

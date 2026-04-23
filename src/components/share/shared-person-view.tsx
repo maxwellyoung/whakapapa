@@ -36,17 +36,17 @@ export function SharedPersonView({ person, workspaceName }: SharedPersonViewProp
   const lifeDates = formatLifeDates(person.birth_date, person.death_date)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-stone-100 dark:from-stone-950 dark:to-stone-900">
-      <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-md">
+    <div className="archive-public-shell">
+      <header className="archive-public-header">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-stone-900 dark:bg-stone-100">
-              <TreePine className="h-4 w-4 text-stone-50 dark:text-stone-900" />
+            <div className="archive-public-mark">
+              <TreePine className="h-4 w-4" aria-hidden="true" />
             </div>
-            <span className="font-semibold text-stone-900 dark:text-stone-100">Whakapapa</span>
+            <span className="font-serif text-xl text-[var(--archive-text)]" translate="no">Whakapapa</span>
           </div>
           {workspaceName && (
-            <span className="text-sm text-stone-500 dark:text-stone-400">{workspaceName}</span>
+            <span className="text-sm text-[rgba(238,220,184,0.62)]">{workspaceName}</span>
           )}
         </div>
       </header>
@@ -55,27 +55,27 @@ export function SharedPersonView({ person, workspaceName }: SharedPersonViewProp
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-stone-800/50 rounded-2xl border border-stone-200 dark:border-stone-700 shadow-xl overflow-hidden"
+          className="archive-artifact"
         >
-          <div className="px-6 py-8 border-b border-stone-100 dark:border-stone-700">
+          <div className="archive-artifact__band px-6 py-8">
             <div className="flex flex-col items-center text-center">
-              <Avatar className="h-24 w-24 mb-4">
+              <Avatar className="h-24 w-24 mb-4 ring-1 ring-[rgba(237,203,136,0.22)]">
                 <AvatarImage src={person.photo_url || undefined} alt={person.preferred_name} />
                 <AvatarFallback className="text-2xl">
                   {getInitials(person.preferred_name)}
                 </AvatarFallback>
               </Avatar>
-              <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
+              <h1 className="font-serif text-4xl leading-none tracking-[-0.04em] text-[var(--archive-text)]">
                 {person.preferred_name}
               </h1>
               {(person.given_names || person.family_name) && (
-                <p className="mt-1 text-stone-500 dark:text-stone-400">
+                <p className="mt-2 text-[rgba(238,220,184,0.6)]">
                   {person.given_names} {person.family_name}
                 </p>
               )}
               {lifeDates && (
-                <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-stone-100 dark:bg-stone-800 px-3 py-1 text-sm text-stone-600 dark:text-stone-300">
-                  <Calendar className="h-4 w-4" />
+                <div className="archive-chip mt-4">
+                  <Calendar className="h-4 w-4" aria-hidden="true" />
                   {lifeDates}
                 </div>
               )}
@@ -84,7 +84,7 @@ export function SharedPersonView({ person, workspaceName }: SharedPersonViewProp
 
           {person.bio && (
             <div className="p-6">
-              <p className="text-lg leading-relaxed text-stone-700 dark:text-stone-300 whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap text-lg leading-relaxed text-[rgba(238,220,184,0.78)]">
                 {person.bio}
               </p>
             </div>
@@ -92,14 +92,14 @@ export function SharedPersonView({ person, workspaceName }: SharedPersonViewProp
         </motion.div>
 
         <div className="mt-8 text-center">
-          <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
+          <p className="text-sm text-[rgba(238,220,184,0.58)] mb-4">
             Preserving family stories with Whakapapa
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[var(--image-paper)] hover:text-[var(--archive-text)]"
           >
-            <TreePine className="h-4 w-4" />
+            <TreePine className="h-4 w-4" aria-hidden="true" />
             Start your family tree
           </Link>
         </div>

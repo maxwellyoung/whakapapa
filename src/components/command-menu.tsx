@@ -41,7 +41,7 @@ interface CommandMenuProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
+function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const router = useRouter()
   const { currentWorkspace } = useWorkspace()
   const [people, setPeople] = useState<PersonSearchResult[]>([])

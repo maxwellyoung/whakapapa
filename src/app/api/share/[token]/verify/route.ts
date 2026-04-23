@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import {
-  canSignShareVerification,
-  createShareVerificationCookieValue,
-  getShareCookieMaxAge,
+  canSignShareAccessVerification,
+  createShareAccessCookieValue,
+  getShareAccessCookieMaxAge,
   getShareCookieName,
   resolveShareAccess,
 } from '@/lib/share-access'
@@ -62,14 +62,14 @@ export async function POST(
     return NextResponse.json({ success: false, status: result.status }, { status: statusCode })
   }
 
-  if (!canSignShareVerification()) {
+  if (!canSignShareAccessVerification()) {
     return NextResponse.json(
       { success: false, status: 'misconfigured' },
       { status: 503 }
     )
   }
 
-  const cookieValue = createShareVerificationCookieValue(token)
+  const cookieValue = createShareAccessCookieValue(token)
   if (!cookieValue) {
     return NextResponse.json(
       { success: false, status: 'misconfigured' },
@@ -85,7 +85,7 @@ export async function POST(
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: `/share/${token}`,
-    maxAge: getShareCookieMaxAge(),
+    maxAge: getShareAccessCookieMaxAge(),
   })
 
   return response

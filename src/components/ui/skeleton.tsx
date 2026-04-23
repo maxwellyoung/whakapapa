@@ -134,9 +134,5 @@ export {
   Skeleton,
   SkeletonCard,
   SkeletonAvatar,
-  SkeletonText,
-  SkeletonTable,
   SkeletonPersonCard,
-  SkeletonTimeline,
-  SkeletonTree,
 }

@@ -254,7 +254,7 @@ export function findDuplicates(
   return matches.sort((a, b) => b.score - a.score)
 }
 
-export function getDuplicateWarning(matches: DuplicateMatch[]): string | null {
+function getDuplicateWarning(matches: DuplicateMatch[]): string | null {
   if (matches.length === 0) return null
 
   const likely = matches.filter((m) => m.verdict === 'likely')

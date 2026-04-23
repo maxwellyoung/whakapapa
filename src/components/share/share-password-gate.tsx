@@ -52,17 +52,17 @@ export function SharePasswordGate({ token, initialError }: SharePasswordGateProp
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950 px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-stone-800 dark:bg-stone-900">
+    <div className="archive-public-shell flex min-h-screen items-center justify-center px-4">
+      <div className="archive-artifact w-full max-w-sm p-6">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800">
-            <Lock className="h-5 w-5 text-stone-600 dark:text-stone-300" />
+          <div className="archive-memory-badge h-10 w-10">
+            <Lock className="h-5 w-5" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+            <h1 className="font-serif text-2xl tracking-[-0.035em] text-[var(--archive-text)]">
               Password Required
             </h1>
-            <p className="text-sm text-stone-500 dark:text-stone-400">
+            <p className="text-sm text-[rgba(238,220,184,0.62)]">
               Enter the share password to continue.
             </p>
           </div>
@@ -70,21 +70,24 @@ export function SharePasswordGate({ token, initialError }: SharePasswordGateProp
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <Input
+            id="share-password"
+            name="share-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Share password"
-            autoFocus
+            placeholder="Share password…"
+            autoComplete="current-password"
             disabled={submitting}
+            className="auth-input"
           />
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <p role="alert" className="rounded-xl border border-[rgba(150,103,56,0.36)] bg-[rgba(150,103,56,0.16)] p-3 text-sm text-[var(--image-paper)]">{error}</p>
           )}
-          <Button className="w-full" type="submit" disabled={submitting || !password.trim()}>
+          <Button className="auth-button auth-button--primary w-full" type="submit" disabled={submitting || !password.trim()}>
             {submitting ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Verifying...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
+                Verifying…
               </>
             ) : (
               'Unlock'

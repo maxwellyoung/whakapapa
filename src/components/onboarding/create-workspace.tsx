@@ -9,6 +9,7 @@ import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { WelcomeDialog } from '@/components/onboarding/welcome-dialog'
 import { toast } from 'sonner'
 
 function slugify(text: string): string {
@@ -22,6 +23,8 @@ export function CreateWorkspace() {
   const router = useRouter()
   const { refresh, setCurrentWorkspaceId } = useWorkspace()
   const [name, setName] = useState('')
+  const [createdWorkspaceName, setCreatedWorkspaceName] = useState('')
+  const [showWelcome, setShowWelcome] = useState(false)
   const [creating, setCreating] = useState(false)
 
   const slug = slugify(name)
@@ -55,39 +58,42 @@ export function CreateWorkspace() {
     }
 
     if (data) {
+      const workspaceName = name.trim()
       await refresh()
       setCurrentWorkspaceId(data)
-      toast.success('Workspace created!')
-      router.push('/people')
+      setCreatedWorkspaceName(workspaceName)
+      setShowWelcome(true)
+      toast.success('Archive created!')
     }
 
     setCreating(false)
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-stone-50 dark:bg-stone-950">
-      {/* Subtle gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-stone-100 via-stone-50 to-amber-50/30 dark:from-stone-950 dark:via-stone-900 dark:to-stone-950" />
+    <>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[var(--atlas-paper)] px-4">
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,#f8ecd6_0%,#efe3d0_58%,#e8d7bf_100%)]" />
+      <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(90deg,rgba(101,76,57,0.06)_1px,transparent_1px),linear-gradient(rgba(101,76,57,0.06)_1px,transparent_1px)] [background-size:32px_32px]" />
 
       {/* Decorative elements */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.4 }}
         transition={{ duration: 2 }}
-        className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-gradient-to-br from-amber-200/20 to-orange-200/20 blur-3xl dark:from-amber-900/10 dark:to-orange-900/10"
+        className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-[rgba(203,153,79,0.18)] blur-3xl"
       />
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 0.3 }}
         transition={{ duration: 2, delay: 0.5 }}
-        className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-gradient-to-br from-stone-200/30 to-stone-300/20 blur-3xl dark:from-stone-800/20 dark:to-stone-700/10"
+        className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-[rgba(18,52,79,0.12)] blur-3xl"
       />
 
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-        className="relative z-10 w-full max-w-md px-6"
+        className="relative z-10 w-full max-w-md"
       >
         {/* Logo and header */}
         <div className="mb-10 text-center">
@@ -97,8 +103,8 @@ export function CreateWorkspace() {
             transition={{ delay: 0.2, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
             className="mb-8 inline-flex"
           >
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-stone-900 shadow-xl shadow-stone-900/10 dark:bg-stone-100">
-              <TreePine className="h-8 w-8 text-stone-50 dark:text-stone-900" strokeWidth={1.5} />
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--atlas-line)] bg-[var(--atlas-ink)] shadow-xl shadow-[rgba(86,59,40,0.14)]">
+              <TreePine className="h-8 w-8 text-[#fff8ec]" strokeWidth={1.5} aria-hidden="true" />
             </div>
           </motion.div>
 
@@ -106,7 +112,7 @@ export function CreateWorkspace() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.4 }}
-            className="text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-100"
+            className="font-serif text-5xl font-medium leading-none tracking-[-0.045em] text-[var(--atlas-ink)]"
           >
             Welcome to Whakapapa
           </motion.h1>
@@ -115,9 +121,9 @@ export function CreateWorkspace() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.4 }}
-            className="mt-3 text-lg text-stone-500 dark:text-stone-400"
+            className="mx-auto mt-4 max-w-sm text-base leading-7 text-[var(--atlas-copy)]"
           >
-            Create a space for your family&apos;s story
+            Create the first archive for your family&apos;s story
           </motion.p>
         </div>
 
@@ -126,28 +132,29 @@ export function CreateWorkspace() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
-          className="rounded-2xl border border-stone-200/60 bg-white/80 p-8 shadow-xl shadow-stone-900/5 backdrop-blur-sm dark:border-stone-800/60 dark:bg-stone-900/80"
+          className="archive-tool-panel p-8"
         >
           <form onSubmit={handleCreate} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-stone-700 dark:text-stone-300">
-                Name your family tree
+              <Label htmlFor="name" className="text-[var(--atlas-ink)]">
+                Name Your Family Archive
               </Label>
               <Input
                 id="name"
-                placeholder="e.g., Young Whānau"
+                name="workspace-name"
+                placeholder="e.g., Young Whānau…"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                autoFocus
-                className="h-12 rounded-xl border-stone-200 bg-stone-50/50 text-base placeholder:text-stone-400 focus:border-stone-400 focus:ring-stone-400 dark:border-stone-700 dark:bg-stone-800/50 dark:placeholder:text-stone-500"
+                autoComplete="organization"
+                className="h-12 text-base"
               />
               {name && (
                 <motion.p
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="text-sm text-stone-400"
+                  className="text-sm text-[var(--atlas-muted)]"
                 >
-                  whakapapa.app/<span className="text-stone-600 dark:text-stone-300">{slug}</span>
+                  whakapapa.app/<span className="text-[var(--atlas-ink)]">{slug}</span>
                 </motion.p>
               )}
             </div>
@@ -155,7 +162,7 @@ export function CreateWorkspace() {
             <Button
               type="submit"
               disabled={creating || !name.trim()}
-              className="h-12 w-full rounded-xl bg-stone-900 text-base font-medium text-stone-50 shadow-lg shadow-stone-900/20 transition-all hover:bg-stone-800 hover:shadow-xl hover:shadow-stone-900/25 disabled:opacity-50 dark:bg-stone-100 dark:text-stone-900 dark:shadow-stone-100/10 dark:hover:bg-stone-200"
+              className="h-12 w-full rounded-xl text-base font-medium"
             >
               {creating ? (
                 <motion.div
@@ -166,8 +173,8 @@ export function CreateWorkspace() {
                 </motion.div>
               ) : (
                 <>
-                  Create workspace
-                  <ArrowRight className="ml-2 h-5 w-5" />
+                  Create Archive
+                  <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />
                 </>
               )}
             </Button>
@@ -179,7 +186,7 @@ export function CreateWorkspace() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.4 }}
-          className="mt-8 text-center text-sm text-stone-400 dark:text-stone-500"
+          className="mt-8 text-center text-sm leading-6 text-[var(--atlas-muted)]"
         >
           Your family&apos;s data is private by default.
           <br />
@@ -200,13 +207,22 @@ export function CreateWorkspace() {
               await supabase.auth.signOut()
               router.push('/login')
             }}
-            className="inline-flex items-center gap-1.5 text-sm text-stone-400 transition-colors hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300"
+            className="inline-flex items-center gap-1.5 text-sm text-[var(--atlas-muted)] transition-colors hover:text-[var(--atlas-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(203,153,79,0.24)]"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
             Sign out and use a different account
           </button>
         </motion.div>
       </motion.div>
     </div>
+      <WelcomeDialog
+        open={showWelcome}
+        onClose={() => {
+          setShowWelcome(false)
+          router.push('/people/new')
+        }}
+        workspaceName={createdWorkspaceName}
+      />
+    </>
   )
 }

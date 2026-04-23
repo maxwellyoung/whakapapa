@@ -7,7 +7,7 @@ import {
   verifyShareCookieValue,
 } from '@/lib/share-verification'
 
-export type ShareAccessStatus =
+type ShareAccessStatus =
   | 'ok'
   | 'not_found'
   | 'expired'
@@ -15,7 +15,7 @@ export type ShareAccessStatus =
   | 'password_required'
   | 'invalid_password'
 
-export interface SharePersonPayload {
+interface SharePersonPayload {
   id: string
   preferred_name: string
   given_names: string | null
@@ -26,7 +26,7 @@ export interface SharePersonPayload {
   death_date?: string | null
 }
 
-export interface ShareMemoryPayload {
+interface ShareMemoryPayload {
   id: string
   memory_type: string
   title: string | null
@@ -39,7 +39,7 @@ export interface ShareMemoryPayload {
   created_at: string
 }
 
-export interface ShareAccessResult {
+interface ShareAccessResult {
   status: ShareAccessStatus
   entity_type?: 'memory' | 'person'
   workspace?: { name: string }
@@ -54,7 +54,7 @@ function getShareCookieSecret(): string | null {
   return secret || null
 }
 
-export function canSignShareVerification(): boolean {
+export function canSignShareAccessVerification(): boolean {
   return canSignShareVerificationWithSecret(getShareCookieSecret())
 }
 
@@ -62,11 +62,11 @@ export function getShareCookieName(token: string): string {
   return `${SHARE_COOKIE_PREFIX}${token.slice(0, 16)}`
 }
 
-export function createShareVerificationCookieValue(token: string): string | null {
+export function createShareAccessCookieValue(token: string): string | null {
   return createCookieValue(token, getShareCookieSecret())
 }
 
-export function getShareCookieMaxAge(): number {
+export function getShareAccessCookieMaxAge(): number {
   return getCookieMaxAge()
 }
 

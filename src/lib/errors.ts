@@ -5,7 +5,7 @@
  * in plain language that anyone can understand.
  */
 
-export type ErrorContext =
+type ErrorContext =
   | 'create_person'
   | 'update_person'
   | 'delete_person'
@@ -145,7 +145,7 @@ const ERROR_MESSAGES: Record<ErrorContext, FriendlyError> = {
 /**
  * Get a user-friendly error message for display
  */
-export function getFriendlyError(context: ErrorContext): FriendlyError {
+function getFriendlyError(context: ErrorContext): FriendlyError {
   return ERROR_MESSAGES[context]
 }
 
@@ -160,7 +160,7 @@ export function getErrorToast(context: ErrorContext): string {
 /**
  * Format a detailed error for display in an alert or modal
  */
-export function getDetailedError(context: ErrorContext, technicalError?: string): {
+function getDetailedError(context: ErrorContext, technicalError?: string): {
   title: string
   description: string
   suggestion: string

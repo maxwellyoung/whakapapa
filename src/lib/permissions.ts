@@ -16,7 +16,7 @@ export function canEdit(role: UserRole): boolean {
   return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY.editor
 }
 
-export function canContribute(role: UserRole): boolean {
+function canContribute(role: UserRole): boolean {
   return ROLE_HIERARCHY[role] >= ROLE_HIERARCHY.contributor
 }
 

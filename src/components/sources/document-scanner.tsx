@@ -1,18 +1,16 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   FileText,
   Upload,
-  Loader2,
   Copy,
   Check,
   X,
   Sparkles,
   ImageIcon,
   RotateCcw,
-  ZoomIn,
 } from 'lucide-react'
 import Tesseract from 'tesseract.js'
 import { Button } from '@/components/ui/button'
@@ -73,18 +71,18 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
 
     setIsProcessing(true)
     setProgress(0)
-    setProgressMessage('Initializing OCR...')
+    setProgressMessage('Initializing OCR…')
 
     try {
       const result = await Tesseract.recognize(image, 'eng', {
         logger: (m) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100))
-            setProgressMessage('Reading text...')
+            setProgressMessage('Reading text…')
           } else if (m.status === 'loading language traineddata') {
-            setProgressMessage('Loading language data...')
+            setProgressMessage('Loading language data…')
           } else if (m.status === 'initializing tesseract') {
-            setProgressMessage('Initializing...')
+            setProgressMessage('Initializing…')
           }
         },
       })
@@ -132,19 +130,19 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/50">
-            <FileText className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-[var(--atlas-line)] bg-[rgba(18,52,79,0.1)]">
+            <FileText className="h-5 w-5 text-[var(--atlas-teal)]" aria-hidden="true" />
           </div>
           <div>
-            <h3 className="font-semibold text-stone-900 dark:text-stone-100">Document Scanner</h3>
-            <p className="text-sm text-stone-500 dark:text-stone-400">
+            <h3 className="font-serif text-2xl tracking-[-0.035em] text-[var(--atlas-ink)]">Document Scanner</h3>
+            <p className="text-sm text-[var(--atlas-copy)]">
               Extract text from old letters and documents
             </p>
           </div>
         </div>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close Document Scanner">
+            <X className="h-4 w-4" aria-hidden="true" />
           </Button>
         )}
       </div>
@@ -154,24 +152,26 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
-          className="border-2 border-dashed border-stone-200 dark:border-stone-700 rounded-xl p-8 text-center hover:border-stone-300 dark:hover:border-stone-600 transition-colors"
+          className="archive-dropzone p-8 text-center"
         >
           <input
             ref={fileInputRef}
+            id="document-image"
+            name="document-image"
             type="file"
             accept="image/*"
             onChange={handleFileSelect}
             className="hidden"
           />
           <div className="flex flex-col items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-stone-100 dark:bg-stone-800">
-              <ImageIcon className="h-7 w-7 text-stone-400" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-[var(--atlas-line)] bg-[rgba(255,246,228,0.74)]">
+              <ImageIcon className="h-7 w-7 text-[var(--atlas-teal)]" aria-hidden="true" />
             </div>
             <div>
-              <p className="font-medium text-stone-700 dark:text-stone-300">
+              <p className="font-medium text-[var(--atlas-ink)]">
                 Drop an image here
               </p>
-              <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+              <p className="text-sm text-[var(--atlas-copy)] mt-1">
                 or click to browse
               </p>
             </div>
@@ -179,7 +179,7 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
               variant="outline"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="h-4 w-4 mr-2" />
+              <Upload className="h-4 w-4 mr-2" aria-hidden="true" />
               Choose File
             </Button>
           </div>
@@ -187,11 +187,11 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
       ) : (
         <div className="space-y-4">
           {/* Image Preview */}
-          <div className="relative rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700">
+          <div className="relative overflow-hidden rounded-xl border border-[var(--atlas-line)] bg-[rgba(255,249,238,0.68)]">
             <img
               src={image}
               alt="Document to scan"
-              className="w-full max-h-64 object-contain bg-stone-50 dark:bg-stone-800"
+              className="w-full max-h-64 object-contain bg-[rgba(255,249,238,0.68)]"
             />
             <Button
               variant="secondary"
@@ -199,7 +199,7 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
               onClick={reset}
               className="absolute top-2 right-2"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-4 w-4" aria-hidden="true" />
             </Button>
           </div>
 
@@ -207,10 +207,10 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
           {isProcessing && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-stone-500 dark:text-stone-400">
+                <span className="text-[var(--atlas-copy)]">
                   {progressMessage}
                 </span>
-                <span className="font-mono text-stone-600 dark:text-stone-300">
+                <span className="font-mono text-[var(--atlas-ink)]">
                   {progress}%
                 </span>
               </div>
@@ -221,7 +221,7 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
           {/* Action Button */}
           {!extractedText && !isProcessing && (
             <Button onClick={processImage} className="w-full" size="lg">
-              <Sparkles className="h-4 w-4 mr-2" />
+              <Sparkles className="h-4 w-4 mr-2" aria-hidden="true" />
               Extract Text
             </Button>
           )}
@@ -238,9 +238,9 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
                 <div className="flex gap-2">
                   <Button variant="ghost" size="sm" onClick={handleCopy}>
                     {copied ? (
-                      <Check className="h-4 w-4 mr-1" />
+                      <Check className="h-4 w-4 mr-1" aria-hidden="true" />
                     ) : (
-                      <Copy className="h-4 w-4 mr-1" />
+                      <Copy className="h-4 w-4 mr-1" aria-hidden="true" />
                     )}
                     {copied ? 'Copied' : 'Copy'}
                   </Button>
@@ -258,7 +258,7 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
                 </Button>
                 {onTextExtracted && (
                   <Button onClick={handleUseText} className="flex-1">
-                    <Sparkles className="h-4 w-4 mr-2" />
+                    <Sparkles className="h-4 w-4 mr-2" aria-hidden="true" />
                     Use for AI Extraction
                   </Button>
                 )}
@@ -269,8 +269,8 @@ export function DocumentScanner({ onTextExtracted, onClose }: DocumentScannerPro
       )}
 
       {/* Tips */}
-      <div className="p-3 rounded-lg bg-stone-50 dark:bg-stone-800/50 text-sm text-stone-500 dark:text-stone-400">
-        <p className="font-medium text-stone-700 dark:text-stone-300 mb-1">Tips for best results:</p>
+      <div className="rounded-xl border border-[var(--atlas-line)] bg-[rgba(255,249,238,0.62)] p-3 text-sm text-[var(--atlas-copy)]">
+        <p className="font-medium text-[var(--atlas-ink)] mb-1">Tips for best results:</p>
         <ul className="list-disc list-inside space-y-0.5 text-xs">
           <li>Use good lighting and avoid shadows</li>
           <li>Keep the document flat and in focus</li>

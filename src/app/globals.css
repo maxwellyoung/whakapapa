@@ -995,6 +995,143 @@ p {
   box-shadow: 0 0 0 3px rgba(203, 153, 79, 0.18);
 }
 
+.archive-public-shell {
+  position: relative;
+  min-height: 100svh;
+  overflow-x: clip;
+  background:
+    linear-gradient(90deg, rgba(8, 12, 18, 0.96), rgba(8, 12, 18, 0.82) 42%, rgba(8, 12, 18, 0.68)),
+    linear-gradient(180deg, rgba(15, 29, 43, 0.76), rgba(8, 12, 18, 0.96)),
+    url("/landing/transmission-thread-web.png");
+  background-position: center;
+  background-size: cover;
+  color: var(--archive-text);
+}
+
+.archive-public-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(90deg, rgba(237, 203, 136, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(237, 203, 136, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at 50% 38%, black, transparent 78%);
+}
+
+.archive-public-header {
+  position: relative;
+  z-index: 1;
+  border-bottom: 1px solid rgba(237, 203, 136, 0.14);
+  background: rgba(8, 12, 18, 0.72);
+  backdrop-filter: blur(18px);
+}
+
+.archive-public-mark {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(237, 203, 136, 0.24);
+  border-radius: 0.75rem;
+  background: rgba(203, 153, 79, 0.12);
+  color: var(--image-paper);
+}
+
+.archive-artifact {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  border: 1px solid rgba(237, 203, 136, 0.18);
+  border-radius: 2rem;
+  background:
+    linear-gradient(180deg, rgba(15, 29, 43, 0.78), rgba(8, 12, 18, 0.94)),
+    rgba(8, 12, 18, 0.92);
+  box-shadow:
+    0 34px 110px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(237, 203, 136, 0.12);
+  backdrop-filter: blur(20px);
+}
+
+.archive-artifact__band {
+  border-bottom: 1px solid rgba(237, 203, 136, 0.14);
+  background: rgba(237, 203, 136, 0.035);
+}
+
+.archive-memory-badge {
+  display: inline-flex;
+  height: 3rem;
+  width: 3rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(237, 203, 136, 0.24);
+  border-radius: 1rem;
+  background: rgba(203, 153, 79, 0.12);
+  color: var(--image-paper);
+}
+
+.archive-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(237, 203, 136, 0.18);
+  border-radius: 999px;
+  background: rgba(237, 203, 136, 0.08);
+  padding: 0.35rem 0.7rem;
+  color: rgba(238, 220, 184, 0.76);
+  font-size: 0.85rem;
+}
+
+.archive-tool-panel {
+  border: 1px solid var(--atlas-line);
+  border-radius: 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.94), rgba(248, 236, 214, 0.84)),
+    var(--atlas-paper);
+  box-shadow:
+    0 18px 45px rgba(86, 59, 40, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+}
+
+.archive-dropzone {
+  border: 2px dashed rgba(203, 153, 79, 0.32);
+  border-radius: 1.35rem;
+  background: rgba(255, 249, 238, 0.64);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.archive-dropzone:hover {
+  border-color: rgba(203, 153, 79, 0.56);
+  background: rgba(255, 249, 238, 0.88);
+}
+
+.archive-record-button {
+  border: 1px solid rgba(203, 153, 79, 0.44);
+  background: rgba(203, 153, 79, 0.94);
+  color: #fff8ec;
+  box-shadow: 0 18px 46px rgba(203, 153, 79, 0.22);
+  transition:
+    transform 160ms cubic-bezier(0.23, 1, 0.32, 1),
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.archive-record-button:hover {
+  background: rgba(150, 103, 56, 0.96);
+  box-shadow: 0 22px 58px rgba(203, 153, 79, 0.28);
+}
+
+.archive-recording-bar {
+  width: 0.5rem;
+  border-radius: 999px;
+  background: var(--image-ochre);
+}
+
 @media (hover: hover) and (pointer: fine) {
   .landing-proof .landing-art__image,
   .landing-share__image .landing-art__image {

@@ -18,7 +18,7 @@ interface SpringFadeInProps {
   className?: string
 }
 
-export function SpringFadeIn({ children, delay = 0, className }: SpringFadeInProps) {
+function SpringFadeIn({ children, delay = 0, className }: SpringFadeInProps) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -40,7 +40,7 @@ interface SpringScaleInProps {
   className?: string
 }
 
-export function SpringScaleIn({ children, delay = 0, className }: SpringScaleInProps) {
+function SpringScaleIn({ children, delay = 0, className }: SpringScaleInProps) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -62,7 +62,7 @@ interface StaggeredChildrenProps {
   className?: string
 }
 
-export function StaggeredChildren({ 
+function StaggeredChildren({ 
   children, 
   staggerDelay = 100, 
   className 
@@ -110,7 +110,7 @@ const directionMap = {
   right: { x: '-100%' },
 }
 
-export function SlideTransition({ 
+function SlideTransition({ 
   show, 
   children, 
   direction = 'up', 
@@ -141,7 +141,7 @@ interface FloatingElementProps {
   className?: string
 }
 
-export function FloatingElement({ 
+function FloatingElement({ 
   children, 
   intensity = 10, 
   className 
@@ -167,7 +167,7 @@ interface PulseProps {
   className?: string
 }
 
-export function Pulse({ 
+function Pulse({ 
   children, 
   scale = 1.05, 
   className 
@@ -216,6 +216,7 @@ interface GrowingTreeProps {
   className?: string
 }
 
+// fallow-ignore-next-line unused-export
 export function GrowingTree({ nodeCount, className }: GrowingTreeProps) {
   return (
     <motion.div

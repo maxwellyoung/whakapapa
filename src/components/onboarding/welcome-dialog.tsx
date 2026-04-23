@@ -62,10 +62,10 @@ export function WelcomeDialog({ open, onClose, workspaceName }: WelcomeDialogPro
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="font-serif text-2xl tracking-[-0.035em] text-[var(--atlas-ink)]">
             {step === 0 ? `Welcome to ${workspaceName}!` : currentStep.title}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-[var(--atlas-copy)]">
             {step === 0
               ? "Let's get your family tree started. Here's what you can do:"
               : currentStep.description}
@@ -77,22 +77,22 @@ export function WelcomeDialog({ open, onClose, workspaceName }: WelcomeDialogPro
             <div className="space-y-4">
               {steps.map((s, i) => (
                 <div key={i} className="flex items-start gap-3">
-                  <div className="rounded-full bg-neutral-100 p-2 dark:bg-neutral-800">
-                    <s.icon className="h-4 w-4" />
+                  <div className="rounded-full border border-[var(--atlas-line)] bg-[var(--atlas-accent-soft)] p-2">
+                    <s.icon className="h-4 w-4 text-[var(--atlas-accent)]" aria-hidden="true" />
                   </div>
                   <div>
-                    <p className="font-medium">{s.title}</p>
-                    <p className="text-sm text-muted-foreground">{s.description}</p>
+                    <p className="font-medium text-[var(--atlas-ink)]">{s.title}</p>
+                    <p className="text-sm text-[var(--atlas-copy)]">{s.description}</p>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="flex flex-col items-center text-center">
-              <div className="mb-4 rounded-full bg-neutral-100 p-4 dark:bg-neutral-800">
-                <Icon className="h-8 w-8" />
+              <div className="mb-4 rounded-full border border-[var(--atlas-line)] bg-[var(--atlas-accent-soft)] p-4">
+                <Icon className="h-8 w-8 text-[var(--atlas-accent)]" aria-hidden="true" />
               </div>
-              <p className="text-muted-foreground">{currentStep.description}</p>
+              <p className="text-[var(--atlas-copy)]">{currentStep.description}</p>
             </div>
           )}
         </div>
@@ -103,7 +103,7 @@ export function WelcomeDialog({ open, onClose, workspaceName }: WelcomeDialogPro
               <div
                 key={i}
                 className={`h-1.5 w-6 rounded-full transition-colors ${
-                  i <= step ? 'bg-neutral-900 dark:bg-neutral-100' : 'bg-neutral-200 dark:bg-neutral-700'
+                  i <= step ? 'bg-[var(--atlas-accent)]' : 'bg-[var(--atlas-line)]'
                 }`}
               />
             ))}

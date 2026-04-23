@@ -36,7 +36,7 @@ export function Mihimihi() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(8,12,18,0.64)] p-4 backdrop-blur-sm"
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -48,7 +48,7 @@ export function Mihimihi() {
               damping: 30,
               duration: 0.4 
             }}
-            className="bg-card border border-border rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-auto shadow-xl"
+            className="archive-tool-panel max-h-[90vh] w-full max-w-2xl overflow-auto"
           >
             <div className="relative">
               {/* Close button */}
@@ -56,14 +56,15 @@ export function Mihimihi() {
                 variant="ghost"
                 size="icon"
                 onClick={handleAcknowledge}
-                className="absolute right-4 top-4 z-10 h-8 w-8 rounded-full bg-muted/50 hover:bg-muted backdrop-blur-sm"
+                className="absolute right-4 top-4 z-10 h-8 w-8 rounded-full bg-[rgba(255,249,238,0.62)] text-[var(--atlas-copy)] backdrop-blur-sm hover:bg-[var(--atlas-accent-soft)] hover:text-[var(--atlas-ink)]"
+                aria-label="Close welcome"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4" aria-hidden="true" />
               </Button>
 
-              {/* Header with gradient */}
+              {/* Header with source-image colors */}
               <div className="relative overflow-hidden rounded-t-2xl">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-cyan-500/5 to-blue-500/10" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(93,141,123,0.22),transparent_34%),radial-gradient(circle_at_84%_12%,rgba(203,153,79,0.18),transparent_30%)]" />
                 <div className="relative px-8 pt-8 pb-6">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -72,10 +73,10 @@ export function Mihimihi() {
                     className="text-center"
                   >
                     <div className="mb-4 text-6xl">🌿</div>
-                    <h1 className="text-2xl font-serif font-medium text-foreground mb-2">
+                    <h1 className="mb-2 font-serif text-2xl font-medium tracking-[-0.035em] text-[var(--atlas-ink)]">
                       Tēnā koutou katoa
                     </h1>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-sm text-[var(--atlas-copy)]">
                       Welcome to this digital whakapapa space
                     </p>
                   </motion.div>
@@ -91,35 +92,35 @@ export function Mihimihi() {
                   className="space-y-6 text-sm leading-relaxed"
                 >
                   <div className="space-y-4">
-                    <p className="text-muted-foreground">
+                    <p className="text-[var(--atlas-copy)]">
                       We acknowledge that the word <em>whakapapa</em> carries deep cultural significance 
                       in te ao Māori. It represents far more than genealogy. It embodies the sacred 
                       connections between all living things, the stories that flow through generations, 
                       and the responsibility we have to honor those who came before us.
                     </p>
 
-                    <p className="text-muted-foreground">
+                    <p className="text-[var(--atlas-copy)]">
                       This application is designed to serve families from all backgrounds who wish to 
                       preserve their ancestral stories. We use the term <em>whakapapa</em> with deep 
                       respect for its origins and the wisdom it represents.
                     </p>
                   </div>
 
-                  <div className="border-l-2 border-accent/30 pl-4 py-2 bg-muted/30 rounded-r-lg">
-                    <p className="text-xs text-muted-foreground italic">
+                  <div className="rounded-r-lg border-l-2 border-[rgba(203,153,79,0.38)] bg-[rgba(255,249,238,0.62)] py-2 pl-4">
+                    <p className="text-xs italic text-[var(--atlas-copy)]">
                       &ldquo;Ko au ko koe, ko koe ko au&rdquo;<br />
                       <span className="text-xs">I am you, and you are me. We are all connected</span>
                     </p>
                   </div>
 
                   <div className="text-center">
-                    <p className="text-xs text-muted-foreground mb-4">
+                    <p className="mb-4 text-xs text-[var(--atlas-muted)]">
                       May this space honor the memories and stories of your whānau
                     </p>
                     
                     <Button
                       onClick={handleAcknowledge}
-                      className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-2 rounded-full transition-spring"
+                      className="rounded-full px-8 py-2 transition-spring"
                     >
                       Kia ora, let&apos;s begin
                     </Button>

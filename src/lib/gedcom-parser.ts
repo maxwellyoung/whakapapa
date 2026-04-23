@@ -36,7 +36,7 @@ interface GedcomFamily {
   divorceDate?: string
 }
 
-export interface GedcomParseResult {
+interface GedcomParseResult {
   individuals: GedcomIndividual[]
   families: GedcomFamily[]
   errors: string[]

@@ -70,7 +70,7 @@ export interface Group {
   created_at: string
 }
 
-export interface GroupMember {
+interface GroupMember {
   group_id: string
   user_id: string
   created_at: string
@@ -140,7 +140,7 @@ export interface Event {
   created_by: string | null
 }
 
-export interface EventParticipant {
+interface EventParticipant {
   event_id: string
   person_id: string
   role: string | null
@@ -165,7 +165,7 @@ export interface Source {
   created_by: string | null
 }
 
-export interface Citation {
+interface Citation {
   id: string
   source_id: string
   entity_type: string
@@ -179,7 +179,7 @@ export interface Citation {
   created_by: string | null
 }
 
-export interface EntityVisibility {
+interface EntityVisibility {
   id: string
   workspace_id: string
   entity_type: string
@@ -206,11 +206,11 @@ export interface MembershipWithProfile extends Membership {
   profiles: Profile | null
 }
 
-export interface MembershipWithWorkspace extends Membership {
+interface MembershipWithWorkspace extends Membership {
   workspaces: Workspace
 }
 
-export interface PersonWithRelationships extends Person {
+interface PersonWithRelationships extends Person {
   relationships_as_a: Relationship[]
   relationships_as_b: Relationship[]
 }
@@ -234,7 +234,7 @@ export interface PersonFormData {
   photo_url?: string
 }
 
-export interface WorkspaceFormData {
+interface WorkspaceFormData {
   name: string
   slug: string
 }
@@ -295,7 +295,7 @@ export interface InterviewResponse {
 }
 
 // Photo tagging
-export interface PhotoTag {
+interface PhotoTag {
   id: string
   source_id: string
   person_id: string | null
@@ -325,7 +325,7 @@ export interface MemorialTribute {
 }
 
 // Shareable links
-export interface ShareableLink {
+interface ShareableLink {
   id: string
   workspace_id: string
   entity_type: 'memory' | 'person'
@@ -340,7 +340,7 @@ export interface ShareableLink {
 }
 
 // Utility types
-export type WithTimestamps<T> = T & {
+type WithTimestamps<T> = T & {
   created_at: string
   updated_at?: string
 }

@@ -32,7 +32,7 @@ const atlasPanelStrongClass =
   'rounded-[2rem] border border-[rgba(101,76,57,0.18)] bg-[rgba(255,252,247,0.94)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_16px_40px_rgba(86,59,40,0.08)]'
 
 const atlasLabelClass =
-  'text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[#8c7c6e]'
+  'text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-[var(--atlas-muted)]'
 
 export default function StoryModePage() {
   const [people, setPeople] = useState<PersonWithConnections[]>([])
@@ -105,9 +105,9 @@ export default function StoryModePage() {
   const getRichnessTone = (richness: 'rich' | 'moderate' | 'emerging') => {
     switch (richness) {
       case 'rich':
-        return 'bg-[rgba(62,92,70,0.12)] text-[#45634e] ring-1 ring-[rgba(62,92,70,0.14)]'
+        return 'bg-[rgba(93,141,123,0.14)] text-[var(--atlas-teal)] ring-1 ring-[rgba(93,141,123,0.18)]'
       case 'moderate':
-        return 'bg-[rgba(165,113,62,0.12)] text-[#8b5d30] ring-1 ring-[rgba(165,113,62,0.16)]'
+        return 'bg-[rgba(150,103,56,0.12)] text-[var(--atlas-coral)] ring-1 ring-[rgba(150,103,56,0.16)]'
       case 'emerging':
         return 'bg-[rgba(203,153,79,0.12)] text-[var(--atlas-accent)] ring-1 ring-[rgba(203,153,79,0.16)]'
     }
@@ -143,7 +143,6 @@ export default function StoryModePage() {
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-[var(--atlas-copy)] transition-colors hover:text-[var(--atlas-ink)]"
-            style={{ color: '#655546' }}
           >
             <ArrowLeft className="h-4 w-4" />
             Back to dashboard
@@ -155,13 +154,12 @@ export default function StoryModePage() {
                 <div className="space-y-3">
                   <p className={atlasLabelClass}>Narrative Atlas</p>
                   <h1
-                    className="mb-0 max-w-3xl text-[clamp(2.6rem,5vw,4.8rem)] font-serif font-medium tracking-[-0.045em]"
-                    style={{ color: '#241a14' }}
+                    className="mb-0 max-w-3xl text-[clamp(2.6rem,5vw,4.8rem)] font-serif font-medium tracking-[-0.045em] text-[var(--atlas-ink)]"
                   >
                     Follow lineage as a field of stories, echoes, and remembered lives.
                   </h1>
                 </div>
-                <p className="mb-0 max-w-2xl text-lg leading-8" style={{ color: '#655546' }}>
+                <p className="mb-0 max-w-2xl text-lg leading-8 text-[var(--atlas-copy)]">
                   Story Mode turns your family tree into a readable landscape. Begin with a question,
                   enter through a person, and move outward through kinship, memory, and time.
                 </p>
@@ -170,17 +168,17 @@ export default function StoryModePage() {
               <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
                 <div className={cn(atlasPanelStrongClass, 'rounded-[1.5rem] px-5 py-4')}>
                   <p className={cn(atlasLabelClass, 'mb-2')}>People</p>
-                  <p className="mb-0 text-3xl font-serif" style={{ color: '#241a14' }}>{people.length}</p>
+                  <p className="mb-0 font-serif text-3xl text-[var(--atlas-ink)]">{people.length}</p>
                 </div>
                 <div className={cn(atlasPanelStrongClass, 'rounded-[1.5rem] px-5 py-4')}>
                   <p className={cn(atlasLabelClass, 'mb-2')}>Stories ready</p>
-                  <p className="mb-0 text-3xl font-serif" style={{ color: '#241a14' }}>
+                  <p className="mb-0 font-serif text-3xl text-[var(--atlas-ink)]">
                     {people.filter((person) => person.has_story).length}
                   </p>
                 </div>
                 <div className={cn(atlasPanelStrongClass, 'rounded-[1.5rem] px-5 py-4')}>
                   <p className={cn(atlasLabelClass, 'mb-2')}>Memory paths</p>
-                  <p className="mb-0 text-3xl font-serif" style={{ color: '#241a14' }}>
+                  <p className="mb-0 font-serif text-3xl text-[var(--atlas-ink)]">
                     {people.reduce((sum, person) => sum + person.relationship_count, 0)}
                   </p>
                 </div>
@@ -202,9 +200,9 @@ export default function StoryModePage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
               <p className={atlasLabelClass}>Entry point</p>
-              <h2 className="mb-0 text-[2rem] font-serif" style={{ color: '#241a14' }}>Ask for a path through the archive</h2>
+              <h2 className="mb-0 font-serif text-[2rem] text-[var(--atlas-ink)]">Ask for a path through the archive</h2>
             </div>
-            <p className="mb-0 max-w-md text-sm leading-6" style={{ color: '#8c7c6e' }}>
+            <p className="mb-0 max-w-md text-sm leading-6 text-[var(--atlas-muted)]">
               Search is the front door. Use names, places, kinship questions, or fragments of family lore.
             </p>
           </div>
@@ -224,9 +222,9 @@ export default function StoryModePage() {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
               <p className={atlasLabelClass}>Family stories</p>
-              <h2 className="mb-0 text-[2.35rem] font-serif" style={{ color: '#241a14' }}>Enter through a person, not a menu.</h2>
+              <h2 className="mb-0 font-serif text-[2.35rem] text-[var(--atlas-ink)]">Enter through a person, not a menu.</h2>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-[rgba(255,252,247,0.72)] px-4 py-2 text-sm text-[#655546] ring-1 ring-[rgba(101,76,57,0.12)]">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[rgba(255,252,247,0.72)] px-4 py-2 text-sm text-[var(--atlas-copy)] ring-1 ring-[rgba(101,76,57,0.12)]">
               <Sparkles className="h-4 w-4 text-[var(--atlas-accent)]" />
               Choose a life to open a richer thread.
             </div>
@@ -237,8 +235,8 @@ export default function StoryModePage() {
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[var(--atlas-accent-soft)]">
                 <BookOpen className="h-7 w-7 text-[var(--atlas-accent)]" />
               </div>
-              <h3 className="mb-3 text-3xl font-serif" style={{ color: '#241a14' }}>The atlas is waiting for its first life.</h3>
-              <p className="mx-auto mb-0 max-w-xl text-base leading-7" style={{ color: '#655546' }}>
+              <h3 className="mb-3 font-serif text-3xl text-[var(--atlas-ink)]">The atlas is waiting for its first life.</h3>
+              <p className="mx-auto mb-0 max-w-xl text-base leading-7 text-[var(--atlas-copy)]">
                 Add one person and Story Mode will begin to shape itself around names, kinship, and the
                 first remembered fragments of your family history.
               </p>
@@ -285,13 +283,12 @@ export default function StoryModePage() {
                           </Avatar>
                           <div className="space-y-1">
                             <h3
-                              className="mb-0 text-[2rem] font-serif leading-none transition-colors group-hover:text-[var(--atlas-accent)]"
-                              style={{ color: '#241a14' }}
+                              className="mb-0 font-serif text-[2rem] leading-none text-[var(--atlas-ink)] transition-colors group-hover:text-[var(--atlas-accent)]"
                             >
                               {person.preferred_name}
                             </h3>
                             {(person.given_names || person.family_name) && (
-                              <p className="mb-0 text-sm" style={{ color: '#8c7c6e' }}>
+                              <p className="mb-0 text-sm text-[var(--atlas-muted)]">
                                 {[person.given_names, person.family_name].filter(Boolean).join(' ')}
                               </p>
                             )}
@@ -307,7 +304,7 @@ export default function StoryModePage() {
                         </span>
                       </div>
 
-                      <div className="flex flex-wrap gap-3 text-sm" style={{ color: '#655546' }}>
+                      <div className="flex flex-wrap gap-3 text-sm text-[var(--atlas-copy)]">
                         {lifeSpan && (
                           <span className="inline-flex items-center gap-2">
                             <Clock3 className="h-4 w-4 text-[var(--atlas-muted)]" />
@@ -326,7 +323,7 @@ export default function StoryModePage() {
 
                       <div className="space-y-3">
                         <p className={atlasLabelClass}>Story fragment</p>
-                        <p className="mb-0 max-w-2xl text-base leading-8" style={{ color: '#655546' }}>
+                        <p className="mb-0 max-w-2xl text-base leading-8 text-[var(--atlas-copy)]">
                           {person.bio
                             ? person.bio
                             : 'This life is only lightly sketched so far. Enter here to trace names, ties, and the first contours of a fuller family story.'}
@@ -334,8 +331,8 @@ export default function StoryModePage() {
                       </div>
 
                       <div className="mt-auto flex items-center justify-between border-t border-[rgba(101,76,57,0.12)] pt-5">
-                        <span className="text-sm font-medium" style={{ color: '#241a14' }}>Enter this story</span>
-                        <span className="text-sm transition-transform duration-200 group-hover:translate-x-1" style={{ color: '#8c7c6e' }}>
+                        <span className="text-sm font-medium text-[var(--atlas-ink)]">Enter this story</span>
+                        <span className="text-sm text-[var(--atlas-muted)] transition-transform duration-200 group-hover:translate-x-1">
                           Follow thread
                         </span>
                       </div>

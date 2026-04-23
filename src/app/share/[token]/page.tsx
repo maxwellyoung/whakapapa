@@ -10,6 +10,22 @@ interface SharePageProps {
   params: Promise<{ token: string }>
 }
 
+function ShareUnavailable({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="archive-public-shell flex min-h-screen items-center justify-center px-4">
+      <div className="archive-artifact max-w-sm p-8 text-center">
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-[var(--image-ochre)]">Shared Link</p>
+        <h1 className="mb-3 font-serif text-4xl leading-none tracking-[-0.04em] text-[var(--archive-text)]">
+          {title}
+        </h1>
+        <p className="text-sm leading-6 text-[rgba(238,220,184,0.66)]">
+          {body}
+        </p>
+      </div>
+    </div>
+  )
+}
+
 export default async function SharePage({ params }: SharePageProps) {
   const { token } = await params
   const verified = await isShareVerified(token)
@@ -34,32 +50,20 @@ export default async function SharePage({ params }: SharePageProps) {
   // Check if expired
   if (access.status === 'expired') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
-        <div className="text-center max-w-sm px-4">
-          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
-            Link Expired
-          </h1>
-          <p className="text-stone-500 dark:text-stone-400">
-            This shared link has expired and is no longer available.
-          </p>
-        </div>
-      </div>
+      <ShareUnavailable
+        title="Link Expired"
+        body="This shared link has expired and is no longer available."
+      />
     )
   }
 
   // Check max views
   if (access.status === 'max_views_reached') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
-        <div className="text-center max-w-sm px-4">
-          <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
-            View Limit Reached
-          </h1>
-          <p className="text-stone-500 dark:text-stone-400">
-            This shared link has reached its maximum number of views.
-          </p>
-        </div>
-      </div>
+      <ShareUnavailable
+        title="View Limit Reached"
+        body="This shared link has reached its maximum number of views."
+      />
     )
   }
 
@@ -82,16 +86,10 @@ export default async function SharePage({ params }: SharePageProps) {
     })
     if (incremented.status === 'max_views_reached') {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
-          <div className="text-center max-w-sm px-4">
-            <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
-              View Limit Reached
-            </h1>
-            <p className="text-stone-500 dark:text-stone-400">
-              This shared link has reached its maximum number of views.
-            </p>
-          </div>
-        </div>
+        <ShareUnavailable
+          title="View Limit Reached"
+          body="This shared link has reached its maximum number of views."
+        />
       )
     }
 
@@ -116,16 +114,10 @@ export default async function SharePage({ params }: SharePageProps) {
     })
     if (incremented.status === 'max_views_reached') {
       return (
-        <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
-          <div className="text-center max-w-sm px-4">
-            <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
-              View Limit Reached
-            </h1>
-            <p className="text-stone-500 dark:text-stone-400">
-              This shared link has reached its maximum number of views.
-            </p>
-          </div>
-        </div>
+        <ShareUnavailable
+          title="View Limit Reached"
+          body="This shared link has reached its maximum number of views."
+        />
       )
     }
 

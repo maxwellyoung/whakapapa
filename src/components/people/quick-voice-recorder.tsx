@@ -209,10 +209,10 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 transition-colors print:hidden"
+        className="archive-record-button fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full print:hidden"
         aria-label="Record voice memory"
       >
-        <Mic className="h-6 w-6" />
+        <Mic className="h-6 w-6" aria-hidden="true" />
       </motion.button>
 
       {/* Recording Modal */}
@@ -222,7 +222,7 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(8,12,18,0.62)] p-4 backdrop-blur-sm"
             onClick={() => !isRecording && !audioBlob && setIsOpen(false)}
           >
             <motion.div
@@ -230,26 +230,28 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-stone-900 rounded-2xl shadow-xl max-w-md w-full p-6"
+              className="archive-tool-panel max-w-md w-full p-6"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+                <h3 className="font-serif text-2xl tracking-[-0.035em] text-[var(--atlas-ink)]">
                   Record a Memory
                 </h3>
                 <button
+                  type="button"
                   onClick={() => {
                     if (isRecording) stopRecording()
                     discardRecording()
                     setIsOpen(false)
                   }}
-                  className="text-stone-400 hover:text-stone-600 dark:hover:text-stone-300"
+                  className="rounded-lg p-1 text-[var(--atlas-muted)] transition-colors hover:bg-[var(--atlas-accent-soft)] hover:text-[var(--atlas-ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(203,153,79,0.24)]"
+                  aria-label="Close Voice Recorder"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-5 w-5" aria-hidden="true" />
                 </button>
               </div>
 
-              <p className="text-sm text-stone-500 dark:text-stone-400 mb-6">
+              <p className="text-sm text-[var(--atlas-copy)] mb-6">
                 Record a story, memory, or anything about {person.preferred_name}
               </p>
 
@@ -270,19 +272,19 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                             repeat: Infinity,
                             delay: i * 0.1,
                           }}
-                          className="w-2 bg-red-500 rounded-full"
+                          className="archive-recording-bar"
                         />
                       ))
                     ) : (
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
-                        <Mic className="h-8 w-8 text-red-500" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(203,153,79,0.28)] bg-[rgba(203,153,79,0.12)]">
+                        <Mic className="h-8 w-8 text-[var(--atlas-accent)]" aria-hidden="true" />
                       </div>
                     )}
                   </div>
 
                   {/* Timer */}
                   {isRecording && (
-                    <p className="text-2xl font-mono font-semibold text-stone-900 dark:text-stone-100 mb-4">
+                    <p className="text-2xl font-mono font-semibold text-[var(--atlas-ink)] mb-4">
                       {formatTime(recordingTime)}
                     </p>
                   )}
@@ -291,22 +293,22 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                   <div className="flex items-center justify-center gap-3">
                     {!isRecording ? (
                       <Button onClick={startRecording} size="lg" className="gap-2">
-                        <Mic className="h-5 w-5" />
+                        <Mic className="h-5 w-5" aria-hidden="true" />
                         Start Recording
                       </Button>
                     ) : (
                       <>
                         {isPaused ? (
                           <Button onClick={resumeRecording} variant="outline" size="icon">
-                            <Play className="h-5 w-5" />
+                            <Play className="h-5 w-5" aria-hidden="true" />
                           </Button>
                         ) : (
                           <Button onClick={pauseRecording} variant="outline" size="icon">
-                            <Pause className="h-5 w-5" />
+                            <Pause className="h-5 w-5" aria-hidden="true" />
                           </Button>
                         )}
                         <Button onClick={stopRecording} variant="destructive" size="lg" className="gap-2">
-                          <Square className="h-4 w-4" />
+                          <Square className="h-4 w-4" aria-hidden="true" />
                           Stop
                         </Button>
                       </>
@@ -317,7 +319,7 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                 /* Review & Save Interface */
                 <div className="space-y-4">
                   {/* Audio Player */}
-                  <div className="p-4 rounded-xl bg-stone-50 dark:bg-stone-800">
+                  <div className="rounded-xl border border-[var(--atlas-line)] bg-[rgba(255,249,238,0.66)] p-4">
                     <audio
                       ref={audioRef}
                       src={audioUrl || undefined}
@@ -330,21 +332,22 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                         size="icon"
                         onClick={togglePlayback}
                       >
-                        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+                        {isPlaying ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
                       </Button>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-stone-900 dark:text-stone-100">
+                        <p className="text-sm font-medium text-[var(--atlas-ink)]">
                           Recording ({formatTime(recordingTime)})
                         </p>
-                        <p className="text-xs text-stone-500">Click play to review</p>
+                        <p className="text-xs text-[var(--atlas-muted)]">Click play to review</p>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={discardRecording}
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                        className="text-[var(--atlas-coral)] hover:bg-[rgba(150,103,56,0.12)] hover:text-[var(--atlas-ink)]"
+                        aria-label="Discard Recording"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </div>
                   </div>
@@ -354,7 +357,8 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                     <Label htmlFor="title">Title (optional)</Label>
                     <Input
                       id="title"
-                      placeholder="e.g., Story about the farm"
+                      name="voice-title"
+                      placeholder="e.g., Story about the farm…"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                     />
@@ -367,7 +371,8 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                     </Label>
                     <Textarea
                       id="transcription"
-                      placeholder="Add a written version or notes about this recording..."
+                      name="voice-transcription"
+                      placeholder="Add a written version or notes about this recording…"
                       value={transcription}
                       onChange={(e) => setTranscription(e.target.value)}
                       rows={3}
@@ -379,7 +384,8 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                     <Label htmlFor="contributedBy">Who recorded this?</Label>
                     <Input
                       id="contributedBy"
-                      placeholder="e.g., Dad, Aunt Mary"
+                      name="contributed-by"
+                      placeholder="e.g., Dad, Aunt Mary…"
                       value={contributedBy}
                       onChange={(e) => setContributedBy(e.target.value)}
                     />
@@ -404,12 +410,12 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
                     >
                       {saving ? (
                         <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Saving...
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                          Saving…
                         </>
                       ) : (
                         <>
-                          <Check className="h-4 w-4 mr-2" />
+                          <Check className="h-4 w-4 mr-2" aria-hidden="true" />
                           Save Memory
                         </>
                       )}

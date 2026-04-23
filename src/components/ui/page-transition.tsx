@@ -8,7 +8,7 @@ interface PageTransitionProps {
   children: ReactNode
 }
 
-export function PageTransition({ children }: PageTransitionProps) {
+function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname()
 
   return (
@@ -38,7 +38,7 @@ interface ModalTransitionProps {
   isOpen: boolean
 }
 
-export function ModalTransition({ children, isOpen }: ModalTransitionProps) {
+function ModalTransition({ children, isOpen }: ModalTransitionProps) {
   return (
     <AnimatePresence>
       {isOpen && (
@@ -110,6 +110,7 @@ interface StaggeredListProps {
   staggerDelay?: number
 }
 
+// fallow-ignore-next-line unused-export
 export function StaggeredList({ children, className, staggerDelay = 0.1 }: StaggeredListProps) {
   return (
     <motion.div
@@ -151,7 +152,7 @@ export function StaggeredList({ children, className, staggerDelay = 0.1 }: Stagg
 }
 
 // Breathe animation for important elements
-export function BreatheWrapper({ children, className }: { children: ReactNode; className?: string }) {
+function BreatheWrapper({ children, className }: { children: ReactNode; className?: string }) {
   return (
     <motion.div
       className={className}
@@ -177,7 +178,7 @@ interface FadeThroughProps {
   className?: string
 }
 
-export function FadeThrough({ children, id, className }: FadeThroughProps) {
+function FadeThrough({ children, id, className }: FadeThroughProps) {
   return (
     <AnimatePresence mode="wait">
       <motion.div

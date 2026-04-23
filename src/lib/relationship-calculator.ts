@@ -289,7 +289,7 @@ export function describeRelationship(
 /**
  * Calculate all relationships from one person to everyone else
  */
-export function calculateAllRelationships(
+function calculateAllRelationships(
   personId: string,
   graph: FamilyGraph,
   people: Map<string, Person>
