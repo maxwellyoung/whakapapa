@@ -46,5 +46,7 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=Could not authenticate`)
+  const errorUrl = new URL('/login', origin)
+  errorUrl.searchParams.set('error', 'Could not authenticate')
+  return NextResponse.redirect(errorUrl)
 }

@@ -32,13 +32,42 @@ function GoogleIcon({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
+function getAuthErrorMessage(rawError?: string | null) {
+  const error = rawError?.toLowerCase() || ''
+  if (!error) return null
+
+  if (error.includes('flow state') || error.includes('unexpected_failure')) {
+    return 'Supabase could not start the sign-in flow. This is usually a temporary Auth/provider issue. Please try Google again, or use the email sign-in link below.'
+  }
+
+  if (error.includes('rate limit')) {
+    return 'Too many sign-in attempts. Please wait a few minutes and try again.'
+  }
+
+  if (error.includes('expired') || error.includes('invalid')) {
+    return 'This sign-in link is invalid or has expired. Please request a new one.'
+  }
+
+  return rawError || 'Could not authenticate. Please try again.'
+}
+
+function getInitialAuthMessage(): { type: 'error'; text: string } | null {
+  if (typeof window === 'undefined') return null
+  const searchParams = new URLSearchParams(window.location.search)
+  const authError = searchParams.get('error_description') || searchParams.get('error')
+  const errorMessage = getAuthErrorMessage(authError)
+  return errorMessage ? { type: 'error', text: errorMessage } : null
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<string | null>(null)
   const [processingLink, setProcessingLink] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(
+    getInitialAuthMessage
+  )
 
   const getSafeNext = () => {
     if (typeof window === 'undefined') return '/'
@@ -110,10 +139,8 @@ export default function LoginPage() {
     setLoading(false)
 
     if (error) {
-      let errorText = error.message
-      if (error.message.includes('rate limit')) {
-        errorText = 'Too many sign-in attempts. Please wait a few minutes and try again.'
-      } else if (error.message.includes('Database error')) {
+      let errorText = getAuthErrorMessage(error.message) || error.message
+      if (error.message.includes('Database error')) {
         errorText = 'Something went wrong setting up your account. Please try again.'
       } else if (error.message.includes('Invalid email')) {
         errorText = 'Please check that your email address is correct.'
@@ -148,9 +175,12 @@ export default function LoginPage() {
     })
 
     if (error) {
+      const errorText =
+        getAuthErrorMessage(error.message) ||
+        `Couldn't sign in with ${provider}. Please try again or use email instead.`
       setMessage({
         type: 'error',
-        text: `Couldn't sign in with ${provider}. Please try again or use email instead.`,
+        text: errorText,
       })
       setOauthLoading(null)
     }
