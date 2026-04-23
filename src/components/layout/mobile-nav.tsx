@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   Menu,
+  BookOpen,
   Users,
   GitBranch,
   FileText,
@@ -25,6 +25,7 @@ import { WorkspaceSwitcher } from './workspace-switcher'
 import { createClient } from '@/lib/supabase/client'
 
 const navItems = [
+  { href: '/story', label: 'Story Mode', icon: BookOpen },
   { href: '/people', label: 'People', icon: Users },
   { href: '/tree', label: 'Family Tree', icon: GitBranch },
   { href: '/sources', label: 'Sources', icon: FileText },
@@ -56,18 +57,19 @@ export function MobileNav() {
     setOpen(false)
   }
 
+  const navItemClass = (isActive: boolean) =>
+    cn(
+      'atlas-nav-item group relative flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium',
+      isActive && 'is-active'
+    )
+
   return (
-    <div className="flex items-center justify-between border-b border-stone-200/60 bg-stone-50/80 backdrop-blur-sm p-4 md:hidden dark:border-stone-800/60 dark:bg-stone-950/80">
+    <div className="atlas-sidebar flex items-center justify-between border-b border-[rgba(101,76,57,0.14)] px-4 py-4 md:hidden">
       <div className="flex items-center gap-2.5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-stone-900 dark:bg-stone-100">
-          <svg className="h-4 w-4 text-stone-50 dark:text-stone-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2v6m0 0l4-4m-4 4l-4-4" />
-            <path d="M12 22V12" />
-            <path d="M20 12v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6" />
-            <path d="M5 12l7-7 7 7" />
-          </svg>
+        <div className="atlas-brand-mark flex h-9 w-9 items-center justify-center rounded-2xl border border-[rgba(69,45,31,0.22)] shadow-[0_10px_20px_rgba(86,59,40,0.08)]">
+          <ScanLine className="h-4 w-4 text-[var(--atlas-accent)]" strokeWidth={1.6} />
         </div>
-        <span className="text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-100">Whakapapa</span>
+        <span className="text-lg font-semibold tracking-tight text-[var(--atlas-ink)]">Whakapapa</span>
       </div>
 
       <Sheet open={open} onOpenChange={setOpen}>
@@ -94,14 +96,22 @@ export function MobileNav() {
                 <button
                   key={item.href}
                   onClick={() => handleNavClick(item.href)}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900'
-                      : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800/50 dark:hover:text-stone-100'
-                  )}
+                  data-active={isActive}
+                  className={navItemClass(isActive)}
                 >
-                  <item.icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                  <span
+                    className={cn(
+                      'absolute bottom-2 left-[0.45rem] top-2 w-[2px] rounded-full',
+                      isActive ? 'bg-[var(--atlas-accent)]' : 'bg-transparent'
+                    )}
+                  />
+                  <item.icon
+                    className={cn(
+                      'atlas-nav-icon h-[18px] w-[18px]',
+                      isActive && 'text-[var(--atlas-accent)]'
+                    )}
+                    strokeWidth={1.6}
+                  />
                   {item.label}
                 </button>
               )
@@ -117,14 +127,22 @@ export function MobileNav() {
                 <button
                   key={item.href}
                   onClick={() => handleNavClick(item.href)}
-                  className={cn(
-                    'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                    isActive
-                      ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900'
-                      : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-500 dark:hover:bg-stone-800/50 dark:hover:text-stone-100'
-                  )}
+                  data-active={isActive}
+                  className={navItemClass(isActive)}
                 >
-                  <item.icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                  <span
+                    className={cn(
+                      'absolute bottom-2 left-[0.45rem] top-2 w-[2px] rounded-full',
+                      isActive ? 'bg-[var(--atlas-accent)]' : 'bg-transparent'
+                    )}
+                  />
+                  <item.icon
+                    className={cn(
+                      'atlas-nav-icon h-[18px] w-[18px]',
+                      isActive && 'text-[var(--atlas-accent)]'
+                    )}
+                    strokeWidth={1.6}
+                  />
                   {item.label}
                 </button>
               )
@@ -132,9 +150,10 @@ export function MobileNav() {
 
             <button
               onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-stone-500 transition-all duration-200 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-500 dark:hover:bg-stone-800/50 dark:hover:text-stone-100"
+              className={navItemClass(false)}
             >
-              <LogOut className="h-[18px] w-[18px]" strokeWidth={1.5} />
+              <span className="absolute bottom-2 left-[0.45rem] top-2 w-[2px] rounded-full bg-transparent" />
+              <LogOut className="atlas-nav-icon h-[18px] w-[18px]" strokeWidth={1.6} />
               Sign out
             </button>
           </nav>

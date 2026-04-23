@@ -52,7 +52,8 @@ export function RelationshipFinder({ currentPerson, trigger }: RelationshipFinde
 
   useEffect(() => {
     if (currentPerson) {
-      setPerson1(currentPerson)
+      const timer = setTimeout(() => setPerson1(currentPerson), 0)
+      return () => clearTimeout(timer)
     }
   }, [currentPerson])
 

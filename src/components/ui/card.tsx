@@ -7,7 +7,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "flex flex-col gap-6 rounded-2xl border border-stone-200/60 bg-white py-6 shadow-sm shadow-stone-900/5 transition-all duration-200 hover:shadow-md hover:shadow-stone-900/8 dark:border-stone-800/60 dark:bg-stone-900 dark:hover:shadow-stone-950/20",
+        "atlas-panel flex flex-col gap-6 rounded-[1.35rem] py-6 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[var(--atlas-line-strong)] hover:shadow-[0_18px_44px_rgba(86,59,40,0.1)]",
         className
       )}
       {...props}
@@ -32,7 +32,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold text-stone-900 dark:text-stone-100", className)}
+      className={cn("leading-none font-semibold text-[var(--atlas-ink)]", className)}
       {...props}
     />
   )
@@ -42,7 +42,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-stone-500 dark:text-stone-400 text-sm", className)}
+      className={cn("text-sm text-[var(--atlas-copy)]", className)}
       {...props}
     />
   )

@@ -17,7 +17,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   // Still loading
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
+      <div className="atlas-shell flex h-screen items-center justify-center">
         <TreeLoader />
       </div>
     )
@@ -32,15 +32,15 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     }
 
     return (
-      <div className="flex h-screen items-center justify-center bg-background">
-        <div className="flex max-w-md flex-col items-center gap-4 rounded-xl border border-border bg-card p-8 text-center shadow-lg animate-scale-in">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/10 animate-breathe">
-            <AlertCircle className="h-6 w-6 text-accent" />
+      <div className="atlas-shell flex h-screen items-center justify-center p-6">
+        <div className="atlas-panel flex max-w-md animate-scale-in flex-col items-center gap-4 rounded-[1.5rem] p-8 text-center">
+          <div className="flex h-12 w-12 animate-breathe items-center justify-center rounded-full bg-[var(--atlas-accent-soft)]">
+            <AlertCircle className="h-6 w-6 text-[var(--atlas-accent)]" />
           </div>
-          <h2 className="text-lg font-serif font-medium text-foreground">
+          <h2 className="font-serif text-lg font-medium text-[var(--atlas-ink)]">
             Unable to load workspaces
           </h2>
-          <p className="text-sm text-muted-foreground leading-relaxed">
+          <p className="text-sm leading-relaxed text-[var(--atlas-copy)]">
             {error}
           </p>
           <div className="flex gap-3">
@@ -65,7 +65,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   // Has workspaces - show dashboard
   return (
-    <div className="flex h-screen flex-col md:flex-row">
+    <div className="atlas-shell flex h-screen flex-col text-[var(--atlas-ink)] md:flex-row">
       {/* Mobile nav - visible on small screens */}
       <MobileNav />
 
@@ -74,8 +74,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <Sidebar />
       </div>
 
-      <main className="flex-1 overflow-auto bg-background">
-        {children}
+      <main className="atlas-main relative flex-1 overflow-auto">
+        <div className="relative z-10">{children}</div>
       </main>
     </div>
   )

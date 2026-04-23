@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { canEdit } from '@/lib/permissions'
+import { isPublicPhotoPath, resolveStorageUrl } from '@/lib/storage'
 import type { Source } from '@/types'
 
 interface PersonAttachmentsProps {
@@ -31,6 +32,7 @@ interface PersonAttachmentsProps {
 interface AttachmentWithSource {
   citation_id: string
   source: Source
+  resolved_url: string | null
 }
 
 export function PersonAttachments({
@@ -63,12 +65,18 @@ export function PersonAttachments({
         .eq('entity_id', personId)
 
       if (data) {
-        const attachmentsData = data
-          .filter((c) => c.sources)
-          .map((c) => ({
-            citation_id: c.id,
-            source: c.sources as unknown as Source,
-          }))
+        const attachmentsData = await Promise.all(
+          data
+            .filter((c) => c.sources)
+            .map(async (c) => {
+              const source = c.sources as unknown as Source
+              return {
+                citation_id: c.id,
+                source,
+                resolved_url: await resolveStorageUrl(supabase, source.file_path),
+              }
+            })
+        )
         setAttachments(attachmentsData)
       }
 
@@ -102,11 +110,17 @@ export function PersonAttachments({
 
     setUploading(true)
     setUploadProgress(10)
+    const supabase = createClient()
+    let uploadedFilePath: string | null = null
+    let createdSourceId: string | null = null
 
     try {
-      const supabase = createClient()
       const fileExt = pendingFile.name.split('.').pop()?.toLowerCase() || 'file'
-      const filePath = `${currentWorkspace.id}/${crypto.randomUUID()}.${fileExt}`
+      const isImage = pendingFile.type.startsWith('image/')
+      const filePath = isImage
+        ? `${currentWorkspace.id}/photos/${crypto.randomUUID()}.${fileExt}`
+        : `${currentWorkspace.id}/${crypto.randomUUID()}.${fileExt}`
+      uploadedFilePath = filePath
 
       setUploadProgress(30)
 
@@ -122,11 +136,7 @@ export function PersonAttachments({
 
       setUploadProgress(60)
 
-      // Get public URL
-      const { data: urlData } = supabase.storage.from('sources').getPublicUrl(filePath)
-
       // Determine source type
-      const isImage = pendingFile.type.startsWith('image/')
       const sourceType = isImage ? 'photo' : 'document'
 
       // Create source record
@@ -145,21 +155,26 @@ export function PersonAttachments({
         .single()
 
       if (sourceError) throw sourceError
+      createdSourceId = source.id
 
       setUploadProgress(80)
 
       // Create citation to link source to person
-      const { error: citationError } = await supabase.from('citations').insert({
-        workspace_id: currentWorkspace.id,
+      const { data: citation, error: citationError } = await supabase.from('citations').insert({
         source_id: source.id,
         entity_type: 'person',
         entity_id: personId,
       })
+      .select('id')
+      .single()
 
       if (citationError) throw citationError
 
+      const resolvedUrl = await resolveStorageUrl(supabase, filePath)
+
       // If this is a photo and user wants it as profile photo
       if (setAsPhoto && isImage) {
+        const { data: urlData } = supabase.storage.from('sources').getPublicUrl(filePath)
         const { error: updateError } = await supabase
           .from('people')
           .update({ photo_url: urlData.publicUrl })
@@ -174,7 +189,7 @@ export function PersonAttachments({
       // Add to local state
       setAttachments((prev) => [
         ...prev,
-        { citation_id: source.id, source: { ...source, url: urlData.publicUrl } },
+        { citation_id: citation.id, source, resolved_url: resolvedUrl },
       ])
 
       toast.success(`"${fileTitle.trim()}" has been attached to ${personName}`)
@@ -182,6 +197,12 @@ export function PersonAttachments({
       setPendingFile(null)
       setFileTitle('')
     } catch (error) {
+      if (createdSourceId) {
+        await supabase.from('sources').delete().eq('id', createdSourceId)
+      }
+      if (uploadedFilePath) {
+        await supabase.storage.from('sources').remove([uploadedFilePath]).catch(() => undefined)
+      }
       console.error('Upload error:', error)
       toast.error("Couldn't upload the file. Please try again.")
     } finally {
@@ -191,10 +212,25 @@ export function PersonAttachments({
   }
 
   const handleSetAsPhoto = async (source: Source) => {
-    if (!source.file_path) return
+    if (!source.file_path || !currentWorkspace) return
 
     const supabase = createClient()
-    const { data: urlData } = supabase.storage.from('sources').getPublicUrl(source.file_path)
+    let photoPath = source.file_path
+
+    if (!isPublicPhotoPath(photoPath)) {
+      const fileExt = source.file_name?.split('.').pop()?.toLowerCase() || source.mime_type?.split('/').pop() || 'jpg'
+      photoPath = `${currentWorkspace.id}/photos/${personId}-${crypto.randomUUID()}.${fileExt}`
+      const { error: copyError } = await supabase.storage
+        .from('sources')
+        .copy(source.file_path, photoPath)
+
+      if (copyError) {
+        toast.error("Couldn't prepare this photo for public display.")
+        return
+      }
+    }
+
+    const { data: urlData } = supabase.storage.from('sources').getPublicUrl(photoPath)
 
     const { error } = await supabase
       .from('people')
@@ -226,13 +262,6 @@ export function PersonAttachments({
   const getFileIcon = (mimeType: string | null) => {
     if (mimeType?.startsWith('image/')) return Image
     return FileText
-  }
-
-  const getDownloadUrl = (source: Source) => {
-    if (!source.file_path) return null
-    const supabase = createClient()
-    const { data } = supabase.storage.from('sources').getPublicUrl(source.file_path)
-    return data.publicUrl
   }
 
   const photos = attachments.filter((a) => a.source.source_type === 'photo')
@@ -283,8 +312,8 @@ export function PersonAttachments({
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-2">Photos</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {photos.map(({ citation_id, source }) => {
-                      const url = getDownloadUrl(source)
+                    {photos.map(({ citation_id, source, resolved_url }) => {
+                      const url = resolved_url
                       return (
                         <div
                           key={citation_id}
@@ -345,9 +374,9 @@ export function PersonAttachments({
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-2">Documents</p>
                   <div className="space-y-2">
-                    {documents.map(({ citation_id, source }) => {
+                    {documents.map(({ citation_id, source, resolved_url }) => {
                       const Icon = getFileIcon(source.mime_type)
-                      const url = getDownloadUrl(source)
+                      const url = resolved_url
                       return (
                         <div
                           key={citation_id}

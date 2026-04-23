@@ -8,6 +8,7 @@ import { useWorkspace } from '@/components/providers/workspace-provider'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import Image from 'next/image'
+import { extractStoragePath } from '@/lib/storage'
 
 interface PhotoUploaderProps {
   currentPhotoUrl?: string | null
@@ -40,7 +41,7 @@ export function PhotoUploader({ currentPhotoUrl, onPhotoChange, personId }: Phot
     try {
       // Delete old photo if exists and we have a personId
       if (currentPhotoUrl && personId) {
-        const oldPath = currentPhotoUrl.split('/sources/')[1]
+        const oldPath = extractStoragePath(currentPhotoUrl)
         if (oldPath) {
           await supabase.storage.from('sources').remove([oldPath])
         }
@@ -89,7 +90,7 @@ export function PhotoUploader({ currentPhotoUrl, onPhotoChange, personId }: Phot
     const supabase = createClient()
 
     try {
-      const filePath = currentPhotoUrl.split('/sources/')[1]
+      const filePath = extractStoragePath(currentPhotoUrl)
       if (filePath) {
         await supabase.storage.from('sources').remove([filePath])
       }

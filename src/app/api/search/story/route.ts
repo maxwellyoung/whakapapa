@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -19,6 +21,11 @@ interface SearchResult {
     death_date?: string
   }
 }
+
+const requestSchema = z.object({
+  workspace_id: z.string().min(1),
+  query: z.string().min(1),
+})
 
 const SEARCH_PROMPT = `You are a genealogy search expert helping users find family information based on natural language queries.
 
@@ -58,11 +65,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { workspace_id, query } = body
-
-    if (!workspace_id || !query) {
+    const parsed = requestSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+    const { workspace_id, query } = parsed.data
 
     // Check if we have an API key
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -118,7 +125,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function gatherFamilyContext(supabase: any, workspace_id: string): Promise<string> {
+async function gatherFamilyContext(supabase: SupabaseClient, workspace_id: string): Promise<string> {
   // Fetch all people in the workspace
   const { data: people } = await supabase
     .from('people')
@@ -189,7 +196,17 @@ async function gatherFamilyContext(supabase: any, workspace_id: string): Promise
   if (memories && memories.length > 0) {
     context += "\nMEMORIES/STORIES:\n"
     for (const memory of memories.slice(0, 20)) {
-      context += `- ${memory.person.preferred_name}: ${memory.title || memory.memory_type} - ${memory.content.substring(0, 150)}\n`
+      const memoryData = memory as {
+        person?: { preferred_name?: string } | Array<{ preferred_name?: string }>
+        content?: string
+        title?: string
+        memory_type?: string
+      }
+      const personName = Array.isArray(memoryData.person)
+        ? memoryData.person[0]?.preferred_name
+        : memoryData.person?.preferred_name
+      const content = typeof memoryData.content === 'string' ? memoryData.content : ''
+      context += `- ${personName || 'Unknown'}: ${memoryData.title || memoryData.memory_type} - ${content.substring(0, 150)}\n`
     }
   }
 
@@ -197,7 +214,7 @@ async function gatherFamilyContext(supabase: any, workspace_id: string): Promise
 }
 
 // Fallback simple search when AI is not available
-async function simpleSearch(supabase: any, workspace_id: string, query: string) {
+async function simpleSearch(supabase: SupabaseClient, workspace_id: string, query: string) {
   const queryLower = query.toLowerCase()
   const results: SearchResult[] = []
 
@@ -211,7 +228,6 @@ async function simpleSearch(supabase: any, workspace_id: string, query: string) 
 
   if (people) {
     people.forEach(person => {
-      const fullName = `${person.given_names || ''} ${person.family_name || ''}`.trim()
       let snippet = `${person.preferred_name}`
       if (person.birth_date) snippet += ` (born ${person.birth_date})`
       if (person.bio) snippet += ` - ${person.bio.substring(0, 100)}...`
@@ -243,7 +259,7 @@ async function simpleSearch(supabase: any, workspace_id: string, query: string) 
   })
 }
 
-function calculateRelevance(query: string, person: any): number {
+function calculateRelevance(query: string, person: Record<string, unknown>): number {
   const fields = [
     person.preferred_name,
     person.given_names,

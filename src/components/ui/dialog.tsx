@@ -38,7 +38,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-stone-950/40 backdrop-blur-sm",
+        "fixed inset-0 z-50 bg-[rgba(31,53,53,0.44)] backdrop-blur-sm data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0",
         className
       )}
       {...props}
@@ -60,8 +60,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-2xl border border-stone-200/60 bg-white p-6 shadow-xl shadow-stone-900/10 duration-200 outline-none sm:max-w-xl",
-          "dark:border-stone-800/60 dark:bg-stone-900 dark:shadow-stone-950/30",
+          "fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-[1.5rem] border border-[var(--atlas-line)] bg-[rgba(255,251,244,0.96)] p-6 text-[var(--atlas-ink)] shadow-[0_28px_70px_rgba(40,35,28,0.24),inset_0_1px_0_rgba(255,255,255,0.65)] duration-200 outline-none sm:max-w-xl",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
           className
         )}
@@ -71,7 +70,7 @@ function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute top-4 right-4 rounded-lg p-1.5 text-stone-400 transition-all duration-200 hover:bg-stone-100 hover:text-stone-600 focus:outline-none focus:ring-2 focus:ring-stone-400/50 disabled:pointer-events-none dark:text-stone-500 dark:hover:bg-stone-800 dark:hover:text-stone-300 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            className="absolute top-4 right-4 rounded-lg p-1.5 text-[var(--atlas-muted)] transition-[background-color,color,box-shadow] duration-200 hover:bg-[var(--atlas-accent-soft)] hover:text-[var(--atlas-ink)] focus:outline-none focus:ring-2 focus:ring-[rgba(203,153,79,0.24)] disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
             <span className="sr-only">Close</span>
@@ -112,7 +111,7 @@ function DialogTitle({
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      className={cn("text-lg leading-none font-semibold text-stone-900 dark:text-stone-100", className)}
+      className={cn("font-serif text-xl leading-none font-semibold text-[var(--atlas-ink)]", className)}
       {...props}
     />
   )
@@ -125,7 +124,7 @@ function DialogDescription({
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      className={cn("text-sm text-stone-500 dark:text-stone-400", className)}
+      className={cn("text-sm text-[var(--atlas-copy)]", className)}
       {...props}
     />
   )

@@ -28,7 +28,7 @@ export function EmptyState({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       className={cn(
-        'flex flex-col items-center justify-center py-16 px-4 text-center',
+        'mx-auto flex max-w-2xl flex-col items-center justify-center px-4 py-16 text-center',
         className
       )}
     >
@@ -37,9 +37,9 @@ export function EmptyState({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.1, duration: 0.3 }}
-          className="mb-5 rounded-2xl bg-gradient-to-br from-stone-100 to-stone-200/50 p-5 shadow-sm shadow-stone-900/5 dark:from-stone-800 dark:to-stone-800/50"
+          className="atlas-empty-mark mb-5 rounded-2xl border border-[var(--atlas-line)] p-5 shadow-[0_16px_34px_rgba(86,59,40,0.1)]"
         >
-          <Icon className="h-7 w-7 text-stone-400 dark:text-stone-500" strokeWidth={1.5} />
+          <Icon className="h-7 w-7 text-[var(--atlas-accent)]" strokeWidth={1.5} />
         </motion.div>
       )}
 
@@ -47,7 +47,7 @@ export function EmptyState({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.15, duration: 0.3 }}
-        className="text-lg font-medium text-stone-900 dark:text-stone-100"
+        className="font-serif text-2xl font-medium tracking-[-0.025em] text-[var(--atlas-ink)]"
       >
         {title}
       </motion.h3>
@@ -57,7 +57,7 @@ export function EmptyState({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.3 }}
-          className="mt-2 max-w-sm text-sm text-stone-500 dark:text-stone-400 leading-relaxed"
+          className="mt-3 max-w-sm text-sm leading-relaxed text-[var(--atlas-copy)]"
         >
           {description}
         </motion.p>

@@ -2,6 +2,7 @@
 
 import { useRef } from 'react'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import {
   BookOpen,
   Quote,
@@ -16,11 +17,21 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import type { Memory, MemoryType, Person } from '@/types'
+import type { MemoryType, Person } from '@/types'
 
 interface SharedMemoryViewProps {
-  memory: Memory & { person: Person }
-  person: Person
+  memory: {
+    id: string
+    memory_type: string
+    title: string | null
+    content: string
+    media_url: string | null
+    media_path?: string | null
+    media_type: string | null
+    duration_seconds: number | null
+    contributed_by_name: string | null
+  }
+  person: Pick<Person, 'id' | 'preferred_name' | 'photo_url' | 'given_names' | 'family_name'>
   workspaceName?: string
 }
 
@@ -187,13 +198,13 @@ export function SharedMemoryView({ memory, person, workspaceName }: SharedMemory
           <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
             Preserving family stories with Whakapapa
           </p>
-          <a
+          <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-medium text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-stone-100"
           >
             <TreePine className="h-4 w-4" />
             Start your family tree
-          </a>
+          </Link>
         </div>
       </main>
     </div>

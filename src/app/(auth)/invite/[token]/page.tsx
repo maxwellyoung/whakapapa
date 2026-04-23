@@ -36,39 +36,28 @@ export default function InvitePage() {
         setUser({ email: authUser.email ?? '' })
       }
 
-      // Fetch invite info
-      const { data, error: fetchError } = await supabase
-        .from('invites')
-        .select(`
-          role,
-          expires_at,
-          used_at,
-          workspaces (name)
-        `)
-        .eq('token', token)
-        .single()
+      const response = await fetch(`/api/invite/${token}`, {
+        cache: 'no-store',
+      })
+      const data = await response.json().catch(() => null)
 
       setLoading(false)
 
-      if (fetchError || !data) {
+      if (!response.ok || !data) {
         setError('This invite link is invalid or has expired.')
         return
       }
 
-      const workspace = data.workspaces as unknown as { name: string } | null
-      const isExpired = data.expires_at ? new Date(data.expires_at) < new Date() : false
-      const isUsed = !!data.used_at
-
-      if (isExpired || isUsed) {
-        setError(isUsed ? 'This invite has already been used.' : 'This invite has expired.')
+      if (data.expired || data.used) {
+        setError(data.used ? 'This invite has already been used.' : 'This invite has expired.')
         return
       }
 
       setInvite({
-        workspace_name: workspace?.name ?? 'Unknown workspace',
+        workspace_name: data.workspace_name ?? 'Unknown workspace',
         role: data.role,
-        expired: isExpired,
-        used: isUsed,
+        expired: data.expired,
+        used: data.used,
       })
     }
 

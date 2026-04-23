@@ -164,9 +164,6 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
 
       if (uploadError) throw uploadError
 
-      // Get public URL
-      const { data: urlData } = supabase.storage.from('sources').getPublicUrl(fileName)
-
       // Create memory record
       const { error: memoryError } = await supabase
         .from('memories')
@@ -176,7 +173,8 @@ export function QuickVoiceRecorder({ person, onMemoryAdded }: QuickVoiceRecorder
           title: title.trim() || `Voice recording - ${new Date().toLocaleDateString()}`,
           content: transcription.trim() || '[Audio recording - transcription pending]',
           memory_type: 'story',
-          media_url: urlData.publicUrl,
+          media_url: null,
+          media_path: fileName,
           media_type: 'audio',
           duration_seconds: recordingTime,
           contributed_by_name: contributedBy.trim() || null,

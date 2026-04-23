@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   Heart,
-  Calendar,
   MapPin,
   Flower2,
   Plus,
@@ -32,15 +31,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { formatFlexibleDate } from '@/lib/dates'
-import { canEdit } from '@/lib/permissions'
 import { toast } from 'sonner'
 import type { Person, Memory, MemorialTribute } from '@/types'
 
 export default function MemorialPage() {
   const params = useParams()
-  const router = useRouter()
   const personId = params.id as string
-  const { currentWorkspace, userRole } = useWorkspace()
+  const { currentWorkspace } = useWorkspace()
 
   const [person, setPerson] = useState<Person | null>(null)
   const [memories, setMemories] = useState<Memory[]>([])
@@ -53,8 +50,6 @@ export default function MemorialPage() {
   const [tributeMessage, setTributeMessage] = useState('')
   const [authorName, setAuthorName] = useState('')
   const [authorRelation, setAuthorRelation] = useState('')
-
-  const canUserEdit = userRole && canEdit(userRole)
 
   useEffect(() => {
     async function fetchData() {
@@ -262,7 +257,7 @@ export default function MemorialPage() {
           {/* Memorial message */}
           {(person as Person & { memorial_message?: string }).memorial_message && (
             <blockquote className="mt-8 max-w-2xl mx-auto text-lg text-stone-600 dark:text-stone-400 italic">
-              "{(person as Person & { memorial_message?: string }).memorial_message}"
+              &ldquo;{(person as Person & { memorial_message?: string }).memorial_message}&rdquo;
             </blockquote>
           )}
         </motion.div>
@@ -310,9 +305,9 @@ export default function MemorialPage() {
                   <p className={`text-stone-600 dark:text-stone-400 ${
                     memory.memory_type === 'quote' ? 'italic' : ''
                   }`}>
-                    {memory.memory_type === 'quote' && '"'}
+                    {memory.memory_type === 'quote' && '\u201c'}
                     {memory.content}
-                    {memory.memory_type === 'quote' && '"'}
+                    {memory.memory_type === 'quote' && '\u201d'}
                   </p>
                   {memory.contributed_by_name && (
                     <p className="mt-2 text-sm text-stone-400">
@@ -418,7 +413,7 @@ export default function MemorialPage() {
                   className="p-6 rounded-xl bg-white dark:bg-stone-800/50 border border-stone-200 dark:border-stone-700"
                 >
                   <blockquote className="text-lg text-stone-700 dark:text-stone-300 mb-4 leading-relaxed">
-                    "{tribute.message}"
+                    &ldquo;{tribute.message}&rdquo;
                   </blockquote>
                   <footer className="flex items-center gap-3">
                     <div className="h-10 w-10 rounded-full bg-stone-100 dark:bg-stone-700 flex items-center justify-center">

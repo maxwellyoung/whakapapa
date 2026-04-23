@@ -7,7 +7,7 @@ function Skeleton({
   return (
     <div
       className={cn(
-        'animate-pulse rounded-md bg-stone-200/80 dark:bg-stone-700/50',
+        'animate-pulse rounded-md bg-[linear-gradient(90deg,rgba(101,76,57,0.08),rgba(255,246,228,0.7),rgba(101,76,57,0.08))]',
         className
       )}
       {...props}
@@ -19,7 +19,7 @@ function Skeleton({
 
 function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('rounded-xl border border-stone-200 dark:border-stone-700 p-4', className)}>
+    <div className={cn('atlas-panel rounded-xl p-4', className)}>
       <div className="space-y-3">
         <Skeleton className="h-5 w-2/5" />
         <Skeleton className="h-4 w-4/5" />
@@ -39,13 +39,14 @@ function SkeletonAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
 }
 
 function SkeletonText({ lines = 3, className }: { lines?: number; className?: string }) {
+  const widthCycle = [92, 84, 76, 88, 68]
   return (
     <div className={cn('space-y-2', className)}>
       {Array.from({ length: lines }).map((_, i) => (
         <Skeleton
           key={i}
           className="h-4"
-          style={{ width: `${Math.random() * 40 + 60}%` }}
+          style={{ width: `${widthCycle[i % widthCycle.length]}%` }}
         />
       ))}
     </div>
@@ -56,7 +57,7 @@ function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number })
   return (
     <div className="space-y-3">
       {/* Header */}
-      <div className="flex gap-4 pb-2 border-b border-stone-200 dark:border-stone-700">
+      <div className="flex gap-4 border-b border-[var(--atlas-line)] pb-2">
         {Array.from({ length: cols }).map((_, i) => (
           <Skeleton key={i} className="h-4 flex-1" />
         ))}
@@ -75,7 +76,7 @@ function SkeletonTable({ rows = 5, cols = 4 }: { rows?: number; cols?: number })
 
 function SkeletonPersonCard() {
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl border border-stone-200 dark:border-stone-700">
+    <div className="atlas-panel flex items-center gap-4 rounded-xl p-4">
       <SkeletonAvatar size="lg" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-5 w-32" />

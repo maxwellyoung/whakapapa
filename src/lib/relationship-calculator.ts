@@ -147,8 +147,28 @@ export function calculateRelationship(
   person1Id: string,
   person2Id: string,
   graph: FamilyGraph,
-  people: Map<string, Person>
+  people: Map<string, Person>,
+  traversal?: {
+    visitedPairs: Set<string>
+    depth: number
+    maxDepth: number
+  }
 ): RelationshipPath | null {
+  const currentTraversal = traversal ?? {
+    visitedPairs: new Set<string>(),
+    depth: 0,
+    maxDepth: 10,
+  }
+  if (currentTraversal.depth > currentTraversal.maxDepth) {
+    return null
+  }
+
+  const pairKey = `${person1Id}->${person2Id}`
+  if (currentTraversal.visitedPairs.has(pairKey)) {
+    return null
+  }
+  currentTraversal.visitedPairs.add(pairKey)
+
   // Same person
   if (person1Id === person2Id) {
     return { path: [person1Id], relationship: 'self', degree: 0 }
@@ -221,8 +241,6 @@ export function calculateRelationship(
 
   if (closestCommonAncestor) {
     const relationship = getCousinRelationship(gen1, gen2)
-    const ancestorName = people.get(closestCommonAncestor)?.preferred_name || 'unknown'
-
     return {
       path: [person1Id, closestCommonAncestor, person2Id],
       relationship,
@@ -232,7 +250,11 @@ export function calculateRelationship(
 
   // Check in-law relationships (spouse's family)
   for (const spouseId of spouses1) {
-    const spouseResult = calculateRelationship(spouseId, person2Id, graph, people)
+    const spouseResult = calculateRelationship(spouseId, person2Id, graph, people, {
+      visitedPairs: currentTraversal.visitedPairs,
+      depth: currentTraversal.depth + 1,
+      maxDepth: currentTraversal.maxDepth,
+    })
     if (spouseResult && spouseResult.relationship !== 'self') {
       return {
         path: [person1Id, spouseId, ...spouseResult.path.slice(1)],

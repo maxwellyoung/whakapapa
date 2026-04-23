@@ -19,7 +19,6 @@ import {
   BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { WorkspaceSwitcher } from './workspace-switcher'
 import { SearchCommand } from './search-command'
 import { createClient } from '@/lib/supabase/client'
@@ -51,16 +50,25 @@ export function Sidebar() {
     router.push('/login')
   }
 
+  const navItemClass = (isActive: boolean) =>
+    cn(
+      'atlas-nav-item group relative flex items-center gap-3 rounded-2xl px-4 py-3 text-[0.95rem] font-medium',
+      isActive && 'is-active'
+    )
+
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-stone-200/60 bg-stone-50/50 dark:border-stone-800/60 dark:bg-stone-950/50">
+    <aside className="atlas-sidebar flex h-screen w-[17.5rem] flex-col">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-stone-900 dark:bg-stone-100">
-          <TreePine className="h-5 w-5 text-stone-50 dark:text-stone-900" strokeWidth={1.5} />
+        <div className="atlas-brand-mark flex h-10 w-10 items-center justify-center rounded-2xl border border-[rgba(69,45,31,0.22)] shadow-[0_10px_20px_rgba(86,59,40,0.08)]">
+          <TreePine className="h-5 w-5 text-[var(--atlas-accent)]" strokeWidth={1.5} />
         </div>
-        <span className="text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-          Whakapapa
-        </span>
+        <div>
+          <span className="block text-[1.35rem] font-semibold leading-none tracking-tight text-[var(--atlas-ink)]">
+            Whakapapa
+          </span>
+          <span className="atlas-label mt-1 block text-[0.58rem]">Living archive</span>
+        </div>
       </div>
 
       {/* Workspace switcher */}
@@ -74,22 +82,32 @@ export function Sidebar() {
       </div>
 
       {/* Main navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-2">
+      <div className="px-4 pb-2">
+        <p className="atlas-label px-3">Navigate</p>
+      </div>
+      <nav className="flex-1 space-y-1 px-3 py-1">
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href)
           return (
             <Link key={item.href} href={item.href}>
               <motion.div
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.98 }}
-                className={cn(
-                  'relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900'
-                    : 'text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800/50 dark:hover:text-stone-100'
-                )}
+                whileHover={{ x: 1.5 }}
+                whileTap={{ scale: 0.99 }}
+                className={navItemClass(isActive)}
               >
-                <item.icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                <span
+                  className={cn(
+                    'absolute bottom-2 left-[0.45rem] top-2 w-[2px] rounded-full',
+                    isActive ? 'bg-[var(--atlas-accent)]' : 'bg-transparent'
+                  )}
+                />
+                <item.icon
+                  className={cn(
+                    'atlas-nav-icon h-[18px] w-[18px]',
+                    isActive && 'text-[var(--atlas-accent)]'
+                  )}
+                  strokeWidth={1.65}
+                />
                 {item.label}
               </motion.div>
             </Link>
@@ -98,25 +116,35 @@ export function Sidebar() {
       </nav>
 
       {/* Divider */}
-      <div className="mx-4 h-px bg-gradient-to-r from-transparent via-stone-200 to-transparent dark:via-stone-800" />
+      <div className="mx-4 h-px bg-gradient-to-r from-transparent via-[rgba(101,76,57,0.18)] to-transparent" />
 
       {/* Bottom navigation */}
-      <nav className="space-y-1 px-3 py-4">
+      <div className="px-4 pt-4 pb-1">
+        <p className="atlas-label px-3">Workspace</p>
+      </div>
+      <nav className="space-y-1 px-3 py-2">
         {bottomItems.map((item) => {
           const isActive = pathname.startsWith(item.href)
           return (
             <Link key={item.href} href={item.href}>
               <motion.div
-                whileHover={{ x: 2 }}
-                whileTap={{ scale: 0.98 }}
-                className={cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900'
-                    : 'text-stone-500 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-500 dark:hover:bg-stone-800/50 dark:hover:text-stone-100'
-                )}
+                whileHover={{ x: 1.5 }}
+                whileTap={{ scale: 0.99 }}
+                className={navItemClass(isActive)}
               >
-                <item.icon className="h-[18px] w-[18px]" strokeWidth={1.5} />
+                <span
+                  className={cn(
+                    'absolute bottom-2 left-[0.45rem] top-2 w-[2px] rounded-full',
+                    isActive ? 'bg-[var(--atlas-accent)]' : 'bg-transparent'
+                  )}
+                />
+                <item.icon
+                  className={cn(
+                    'atlas-nav-icon h-[18px] w-[18px]',
+                    isActive && 'text-[var(--atlas-accent)]'
+                  )}
+                  strokeWidth={1.65}
+                />
                 {item.label}
               </motion.div>
             </Link>
@@ -124,12 +152,13 @@ export function Sidebar() {
         })}
 
         <motion.button
-          whileHover={{ x: 2 }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ x: 1.5 }}
+          whileTap={{ scale: 0.99 }}
           onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-stone-500 transition-colors hover:bg-stone-100 hover:text-stone-900 dark:text-stone-500 dark:hover:bg-stone-800/50 dark:hover:text-stone-100"
+          className={cn(navItemClass(false), 'w-full text-left')}
         >
-          <LogOut className="h-[18px] w-[18px]" strokeWidth={1.5} />
+          <span className="absolute bottom-2 left-[0.45rem] top-2 w-[2px] rounded-full bg-transparent" />
+          <LogOut className="atlas-nav-icon h-[18px] w-[18px]" strokeWidth={1.65} />
           Sign out
         </motion.button>
       </nav>

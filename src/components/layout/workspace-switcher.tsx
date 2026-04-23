@@ -84,15 +84,23 @@ export function WorkspaceSwitcher() {
           <Button
             variant="outline"
             aria-expanded={open}
-            className="w-full justify-between"
+            className="h-12 w-full justify-between rounded-2xl border-[rgba(101,76,57,0.12)] bg-[rgba(255,250,244,0.7)] px-4 text-[var(--atlas-copy)] shadow-none hover:bg-[rgba(255,248,239,0.95)] hover:text-[var(--atlas-ink)]"
           >
-            <span className="truncate">
-              {currentWorkspace?.name ?? 'Select workspace'}
-            </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <div className="min-w-0 text-left">
+              <p className="mb-0 text-[10px] uppercase tracking-[0.18em] text-[var(--atlas-muted)]">
+                Current workspace
+              </p>
+              <span className="block truncate text-sm font-medium">
+                {currentWorkspace?.name ?? 'Select workspace'}
+              </span>
+            </div>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-[var(--atlas-muted)]" strokeWidth={1.5} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="start">
+        <DropdownMenuContent
+          className="w-64 rounded-2xl border-[rgba(101,76,57,0.12)] bg-[rgba(255,251,246,0.98)] p-2 text-[var(--atlas-copy)] shadow-[0_24px_50px_rgba(101,76,57,0.12)]"
+          align="start"
+        >
           {workspaces.map((workspace) => (
             <DropdownMenuItem
               key={workspace.id}
@@ -100,56 +108,61 @@ export function WorkspaceSwitcher() {
                 setCurrentWorkspaceId(workspace.id)
                 setOpen(false)
               }}
+              className="rounded-xl px-3 py-3 text-sm text-[var(--atlas-copy)] focus:bg-[rgba(203,153,79,0.1)] focus:text-[var(--atlas-ink)]"
             >
               <Check
                 className={cn(
                   'mr-2 h-4 w-4',
                   currentWorkspace?.id === workspace.id ? 'opacity-100' : 'opacity-0'
                 )}
+                strokeWidth={1.75}
               />
               {workspace.name}
             </DropdownMenuItem>
           ))}
-          <DropdownMenuSeparator />
+          <DropdownMenuSeparator className="my-2 bg-[rgba(101,76,57,0.1)]" />
           <DropdownMenuItem
             onClick={() => {
               setOpen(false)
               setDialogOpen(true)
             }}
+            className="rounded-xl px-3 py-3 text-sm text-[var(--atlas-copy)] focus:bg-[rgba(203,153,79,0.1)] focus:text-[var(--atlas-ink)]"
           >
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="mr-2 h-4 w-4" strokeWidth={1.75} />
             Create workspace
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="border-[rgba(101,76,57,0.12)] bg-[rgba(252,247,241,0.98)] text-[var(--atlas-copy)] shadow-[0_30px_60px_rgba(101,76,57,0.16)]">
           <DialogHeader>
-            <DialogTitle>Create workspace</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-serif text-3xl text-[var(--atlas-ink)]">Create workspace</DialogTitle>
+            <DialogDescription className="text-[var(--atlas-muted)]">
               Create a new workspace for your family tree.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name" className="text-[var(--atlas-copy)]">Name</Label>
               <Input
                 id="name"
                 placeholder="Young Family"
                 value={name}
                 onChange={(e) => handleNameChange(e.target.value)}
+                className="h-11 rounded-xl border-[rgba(101,76,57,0.14)] bg-[rgba(255,252,248,0.92)] text-[var(--atlas-ink)] placeholder:text-[var(--atlas-muted)]"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="slug">URL slug</Label>
+              <Label htmlFor="slug" className="text-[var(--atlas-copy)]">URL slug</Label>
               <Input
                 id="slug"
                 placeholder="young-family"
                 value={slug}
                 onChange={(e) => setSlug(e.target.value)}
+                className="h-11 rounded-xl border-[rgba(101,76,57,0.14)] bg-[rgba(255,252,248,0.92)] text-[var(--atlas-ink)] placeholder:text-[var(--atlas-muted)]"
               />
-              <p className="text-xs text-stone-400 dark:text-stone-500">
+              <p className="text-xs text-[var(--atlas-muted)]">
                 Used in shareable links
               </p>
             </div>
@@ -158,10 +171,18 @@ export function WorkspaceSwitcher() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setDialogOpen(false)}
+              className="rounded-full border-[rgba(101,76,57,0.16)] bg-transparent text-[var(--atlas-copy)] hover:bg-[rgba(203,153,79,0.08)]"
+            >
               Cancel
             </Button>
-            <Button onClick={handleCreate} disabled={creating || !name.trim()}>
+            <Button
+              onClick={handleCreate}
+              disabled={creating || !name.trim()}
+              className="rounded-full bg-[var(--atlas-accent)] text-white hover:bg-[var(--atlas-accent)]/95"
+            >
               {creating ? 'Creating...' : 'Create'}
             </Button>
           </DialogFooter>

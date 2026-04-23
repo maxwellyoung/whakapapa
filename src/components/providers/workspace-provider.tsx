@@ -28,6 +28,13 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   const fetchWorkspaces = useCallback(async () => {
     const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      setError('Your session has expired. Please sign in again.')
+      setLoading(false)
+      return
+    }
 
     const { data: membershipData, error } = await supabase
       .from('memberships')
@@ -35,23 +42,15 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         *,
         workspaces (*)
       `)
+      .eq('user_id', user.id)
 
     if (error) {
       // Log error details for development only
       if (process.env.NODE_ENV === 'development') {
         console.error('Failed to fetch workspaces:', error.message)
       }
-      
-      // Check if this is an auth issue
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('No authenticated user - session may have expired')
-        }
-        setError('Your session has expired. Please sign in again.')
-      } else {
-        setError('Unable to load your workspaces. Please try refreshing the page.')
-      }
+
+      setError('Unable to load your workspaces. Please try refreshing the page.')
       setLoading(false)
       return
     }
@@ -62,7 +61,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       const ws = membershipData
         .map((m) => m.workspaces as Workspace)
         .filter(Boolean)
-      const ms = membershipData.map(({ workspaces: _, ...m }) => m as Membership)
+      const ms = membershipData.map((membership) => {
+        const { workspaces, ...rest } = membership
+        void workspaces
+        return rest as Membership
+      })
 
       setWorkspaces(ws)
       setMemberships(ms)
@@ -83,7 +86,10 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    fetchWorkspaces()
+    const timer = setTimeout(() => {
+      void fetchWorkspaces()
+    }, 0)
+    return () => clearTimeout(timer)
   }, [fetchWorkspaces])
 
   const setCurrentWorkspaceId = (id: string) => {

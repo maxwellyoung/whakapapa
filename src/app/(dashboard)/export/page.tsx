@@ -21,15 +21,25 @@ export default function ExportPage() {
 
     try {
       // Fetch all data
-      const [people, relationships, events, eventParticipants, sources, citations] =
+      const [people, relationships, events, sources] =
         await Promise.all([
           supabase.from('people').select('*').eq('workspace_id', currentWorkspace.id),
           supabase.from('relationships').select('*').eq('workspace_id', currentWorkspace.id),
           supabase.from('events').select('*').eq('workspace_id', currentWorkspace.id),
-          supabase.from('event_participants').select('*'),
           supabase.from('sources').select('*').eq('workspace_id', currentWorkspace.id),
-          supabase.from('citations').select('*'),
         ])
+
+      const eventIds = (events.data ?? []).map((event) => event.id)
+      const sourceIds = (sources.data ?? []).map((source) => source.id)
+
+      const [eventParticipants, citations] = await Promise.all([
+        eventIds.length > 0
+          ? supabase.from('event_participants').select('*').in('event_id', eventIds)
+          : Promise.resolve({ data: [], error: null }),
+        sourceIds.length > 0
+          ? supabase.from('citations').select('*').in('source_id', sourceIds)
+          : Promise.resolve({ data: [], error: null }),
+      ])
 
       const exportData = {
         workspace: currentWorkspace,
@@ -53,7 +63,7 @@ export default function ExportPage() {
       URL.revokeObjectURL(url)
 
       toast.success('Export complete')
-    } catch (error) {
+    } catch {
       toast.error('Export failed')
     } finally {
       setExporting(null)
@@ -164,7 +174,7 @@ export default function ExportPage() {
       URL.revokeObjectURL(url)
 
       toast.success('GEDCOM export complete')
-    } catch (error) {
+    } catch {
       toast.error('Export failed')
     } finally {
       setExporting(null)

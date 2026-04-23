@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -24,7 +24,7 @@ interface StoryNavigation {
 }
 
 const springConfig = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 400,
   damping: 30
 }
@@ -37,13 +37,7 @@ export function PersonStory({ person }: PersonStoryProps) {
   const { currentWorkspace } = useWorkspace()
   const router = useRouter()
 
-  useEffect(() => {
-    if (currentWorkspace) {
-      generateStory()
-    }
-  }, [person.id, currentWorkspace])
-
-  const generateStory = async (regenerate = false) => {
+  const generateStory = useCallback(async (regenerate = false) => {
     if (!currentWorkspace) return
 
     setLoading(true)
@@ -81,7 +75,13 @@ export function PersonStory({ person }: PersonStoryProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentWorkspace, person.id])
+
+  useEffect(() => {
+    if (currentWorkspace) {
+      void generateStory()
+    }
+  }, [currentWorkspace, generateStory])
 
   const processStoryNavigation = async (storyText: string) => {
     if (!currentWorkspace) return
@@ -170,13 +170,52 @@ export function PersonStory({ person }: PersonStoryProps) {
   }
 
   const renderStoryWithLinks = (text: string) => {
-    let processedText = text
+    const escapeHtml = (value: string) =>
+      value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+
+    const sanitizeGeneratedHtml = (html: string) => {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html')
+      const root = doc.body.firstElementChild
+      if (!root) return ''
+
+      const allowedTags = new Set(['SPAN', 'STRONG', 'EM', 'P', 'BR'])
+      const allowedAttrs = new Set(['class', 'data-person-id', 'data-person-name', 'title'])
+
+      const walk = (node: Element) => {
+        for (const child of [...node.children]) {
+          walk(child)
+        }
+        if (!allowedTags.has(node.tagName)) {
+          node.replaceWith(doc.createTextNode(node.textContent || ''))
+          return
+        }
+        for (const attr of [...node.attributes]) {
+          if (!allowedAttrs.has(attr.name)) {
+            node.removeAttribute(attr.name)
+          }
+        }
+      }
+
+      for (const child of [...root.children]) {
+        walk(child)
+      }
+
+      return root.innerHTML
+    }
+
+    let processedText = escapeHtml(text)
 
     // Process people links [[Name]]
     processedText = processedText.replace(/\[\[([^\]]+)\]\]/g, (match, name) => {
       const linkedPerson = navigation.linkedPeople.find(p => p.name === name)
       if (linkedPerson?.id) {
-        return `<PersonLink data-person-id="${linkedPerson.id}" data-person-name="${name}">${name}</PersonLink>`
+        return `<span class="text-accent font-medium cursor-pointer hover:underline" data-person-id="${linkedPerson.id}" data-person-name="${name}">${name}</span>`
       }
       return `<span class="text-accent font-medium">${name}</span>`
     })
@@ -186,20 +225,22 @@ export function PersonStory({ person }: PersonStoryProps) {
       return `<span class="text-blue-400 font-medium cursor-pointer hover:text-blue-300 transition-colors" title="Search for ${place}">${place}</span>`
     })
 
-    return processedText
+    processedText = processedText.replace(/\n/g, '<br />')
+
+    return sanitizeGeneratedHtml(processedText)
   }
 
   const handlePersonLinkClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement
-    if (target.tagName === 'PERSONLINK') {
-      const personId = target.getAttribute('data-person-id')
-      const personName = target.getAttribute('data-person-name')
-      
+    const personLink = target.closest('[data-person-id]')
+    if (personLink) {
+      const personId = personLink.getAttribute('data-person-id')
+      const personName = personLink.getAttribute('data-person-name')
       if (personId) {
         router.push(`/people/${personId}?view=story`)
-      } else {
-        toast.info(`No profile found for ${personName}`)
+        return
       }
+      toast.info(`No profile found for ${personName}`)
     }
   }
 

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint .",
     "test:unit": "node --experimental-strip-types --test test/**/*.test.ts",
     "auth:test-link": "node scripts/generate-test-auth-link.mjs",
     "fallow": "npx --yes fallow",
@@ -14,7 +14,9 @@
     "fallow:dupes": "npx --yes fallow dupes",
     "fallow:health": "npx --yes fallow health",
     "fallow:audit": "npx --yes fallow audit",
-    "fallow:fix:dry-run": "npx --yes fallow fix --dry-run"
+    "fallow:fix:dry-run": "npx --yes fallow fix --dry-run",
+    "fallow:report": "npx --yes fallow --format compact || true",
+    "validate": "npm run lint && npm run test:unit && npm run fallow:report"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

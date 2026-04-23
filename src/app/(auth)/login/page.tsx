@@ -1,17 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
 // OAuth provider icons
-function GoogleIcon({ className }: { className?: string }) {
+function GoogleIcon({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
-    <svg className={className} viewBox="0 0 24 24">
+    <svg className={className} viewBox="0 0 24 24" {...props}>
       <path
         fill="currentColor"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -32,27 +32,59 @@ function GoogleIcon({ className }: { className?: string }) {
   )
 }
 
-function FacebookIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-    </svg>
-  )
-}
-
-function AppleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
-    </svg>
-  )
-}
-
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<string | null>(null)
+  const [processingLink, setProcessingLink] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const getSafeNext = () => {
+    if (typeof window === 'undefined') return '/'
+    const requestedNext = new URLSearchParams(window.location.search).get('next')
+    return requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('//')
+      ? requestedNext
+      : '/'
+  }
+
+  useEffect(() => {
+    async function completeHashAuth() {
+      if (typeof window === 'undefined') return
+
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const accessToken = hashParams.get('access_token')
+      const refreshToken = hashParams.get('refresh_token')
+
+      if (!accessToken || !refreshToken) {
+        return
+      }
+
+      setProcessingLink(true)
+      setMessage(null)
+
+      const supabase = createClient()
+      const { error } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      })
+
+      if (error) {
+        setMessage({
+          type: 'error',
+          text: 'This sign-in link is invalid or has expired. Please request a new one.',
+        })
+        setProcessingLink(false)
+        return
+      }
+
+      const safeNext = getSafeNext()
+      window.history.replaceState(null, '', safeNext)
+      router.replace(safeNext)
+    }
+
+    completeHashAuth()
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,10 +94,16 @@ export default function LoginPage() {
     const supabase = createClient()
 
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim()
+    const callbackUrl = new URL('/auth/callback', baseUrl)
+    const safeNext = getSafeNext()
+    if (safeNext !== '/') {
+      callbackUrl.searchParams.set('next', safeNext)
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${baseUrl}/auth/callback`,
+        emailRedirectTo: callbackUrl.toString(),
       },
     })
 
@@ -96,10 +134,16 @@ export default function LoginPage() {
     const supabase = createClient()
     const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).trim()
 
+    const callbackUrl = new URL('/auth/callback', baseUrl)
+    const safeNext = getSafeNext()
+    if (safeNext !== '/') {
+      callbackUrl.searchParams.set('next', safeNext)
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${baseUrl}/auth/callback`,
+        redirectTo: callbackUrl.toString(),
       },
     })
 
@@ -114,26 +158,30 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold">Whakapapa</CardTitle>
-        <CardDescription>
-          Your family history, preserved and connected
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <section className="auth-panel w-full" aria-labelledby="login-title">
+      <div className="auth-panel__header">
+        <p className="auth-panel__eyebrow">Secure Archive Access</p>
+        <h1 id="login-title" className="auth-panel__title" translate="no">
+          Whakapapa
+        </h1>
+        <p className="auth-panel__description">
+          Preserve family history with source, voice, and context intact.
+        </p>
+      </div>
+
+      <div className="auth-panel__body">
         {/* OAuth Buttons */}
         <div className="grid gap-2">
           <Button
             variant="outline"
             onClick={() => handleOAuthLogin('google')}
             disabled={oauthLoading !== null}
-            className="w-full"
+            className="auth-button auth-button--oauth w-full"
           >
             {oauthLoading === 'google' ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-stone-300 border-t-stone-600" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[rgba(237,203,136,0.26)] border-t-[var(--image-paper)]" aria-hidden="true" />
             ) : (
-              <GoogleIcon className="mr-2 h-5 w-5" />
+              <GoogleIcon className="mr-2 h-5 w-5" aria-hidden="true" />
             )}
             Continue with Google
           </Button>
@@ -167,10 +215,10 @@ export default function LoginPage() {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <Separator className="w-full" />
+            <Separator className="w-full bg-[rgba(237,203,136,0.16)]" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">
+            <span className="bg-[var(--archive-bg)] px-3 text-[rgba(238,220,184,0.62)]">
               Or continue with email
             </span>
           </div>
@@ -179,27 +227,36 @@ export default function LoginPage() {
         {/* Email Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label htmlFor="email" className="auth-label">
+              Email Address
+            </Label>
             <Input
               id="email"
+              name="email"
               type="email"
-              placeholder="you@example.com"
+              inputMode="email"
+              autoComplete="email"
+              spellCheck={false}
+              placeholder="you@example.com…"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading || oauthLoading !== null}
+              className="auth-input"
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs leading-5 text-[rgba(238,220,184,0.62)]">
               We&apos;ll email you a secure sign-in link. No password needed.
             </p>
           </div>
 
           {message && (
             <div
-              className={`text-sm p-3 rounded-md ${
+              role={message.type === 'error' ? 'alert' : 'status'}
+              aria-live="polite"
+              className={`rounded-xl border p-3 text-sm leading-6 ${
                 message.type === 'success'
-                  ? 'bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300'
-                  : 'bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-300'
+                  ? 'border-[rgba(93,141,123,0.3)] bg-[rgba(93,141,123,0.14)] text-[var(--image-paper)]'
+                  : 'border-[rgba(150,103,56,0.36)] bg-[rgba(150,103,56,0.16)] text-[var(--image-paper)]'
               }`}
             >
               {message.text}
@@ -208,13 +265,13 @@ export default function LoginPage() {
 
           <Button
             type="submit"
-            className="w-full"
-            disabled={loading || oauthLoading !== null}
+            className="auth-button auth-button--primary w-full"
+            disabled={loading || oauthLoading !== null || processingLink}
           >
-            {loading ? 'Sending...' : 'Email me a sign-in link'}
+            {processingLink ? 'Signing You In…' : loading ? 'Sending…' : 'Email Me a Sign-In Link'}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

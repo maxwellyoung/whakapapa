@@ -37,11 +37,10 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit items-center justify-between gap-2 rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-base text-stone-900 whitespace-nowrap shadow-sm shadow-stone-900/5 transition-all duration-200 outline-none",
-        "data-[placeholder]:text-stone-400 [&_svg:not([class*='text-'])]:text-stone-400",
-        "dark:border-stone-700 dark:bg-stone-800/50 dark:text-stone-100 dark:[&_svg:not([class*='text-'])]:text-stone-500",
-        "hover:border-stone-300 dark:hover:border-stone-600",
-        "focus:border-stone-400 focus:ring-2 focus:ring-stone-400/20 dark:focus:border-stone-500 dark:focus:ring-stone-500/20",
+        "flex w-fit items-center justify-between gap-2 whitespace-nowrap rounded-xl border border-[var(--atlas-line)] bg-[rgba(255,249,238,0.74)] px-4 py-3 text-base text-[var(--atlas-ink)] shadow-[inset_0_1px_0_rgba(255,255,255,0.58)] transition-[border-color,box-shadow,background-color] duration-200 outline-none",
+        "data-[placeholder]:text-[var(--atlas-muted)] [&_svg:not([class*='text-'])]:text-[var(--atlas-muted)]",
+        "hover:border-[var(--atlas-line-strong)] hover:bg-[rgba(255,251,244,0.92)]",
+        "focus:border-[var(--atlas-accent)] focus:ring-2 focus:ring-[rgba(203,153,79,0.18)]",
         "disabled:cursor-not-allowed disabled:opacity-50",
         "data-[size=default]:h-12 data-[size=sm]:h-10",
         "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
@@ -52,7 +51,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
+        <ChevronDownIcon className="size-4" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   )
@@ -70,8 +69,7 @@ function SelectContent({
       <SelectPrimitive.Content
         data-slot="select-content"
         className={cn(
-          "relative z-[100] max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-xl border border-stone-200/60 bg-white shadow-lg shadow-stone-900/10",
-          "dark:border-stone-800/60 dark:bg-stone-900 dark:shadow-stone-950/30",
+          "relative z-[100] max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-xl border border-[var(--atlas-line)] bg-[rgba(255,251,244,0.97)] text-[var(--atlas-ink)] shadow-[0_18px_45px_rgba(86,59,40,0.14),inset_0_1px_0_rgba(255,255,255,0.62)]",
           "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
@@ -104,7 +102,7 @@ function SelectLabel({
   return (
     <SelectPrimitive.Label
       data-slot="select-label"
-      className={cn("text-muted-foreground px-2 py-1.5 text-xs", className)}
+      className={cn("px-2 py-1.5 text-xs font-medium uppercase tracking-[0.14em] text-[var(--atlas-muted)]", className)}
       {...props}
     />
   )
@@ -119,9 +117,9 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-default items-center gap-2 rounded-lg py-2 pr-8 pl-3 text-sm text-stone-700 outline-hidden select-none transition-colors",
-        "focus:bg-stone-100 focus:text-stone-900 dark:text-stone-300 dark:focus:bg-stone-800 dark:focus:text-stone-100",
-        "[&_svg:not([class*='text-'])]:text-stone-400 dark:[&_svg:not([class*='text-'])]:text-stone-500",
+        "relative flex w-full cursor-default select-none items-center gap-2 rounded-lg py-2 pr-8 pl-3 text-sm text-[var(--atlas-copy)] outline-hidden transition-colors",
+        "focus:bg-[var(--atlas-accent-soft)] focus:text-[var(--atlas-ink)]",
+        "[&_svg:not([class*='text-'])]:text-[var(--atlas-muted)]",
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         "*:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
@@ -149,7 +147,7 @@ function SelectSeparator({
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn("bg-border pointer-events-none -mx-1 my-1 h-px", className)}
+      className={cn("pointer-events-none -mx-1 my-1 h-px bg-[var(--atlas-line)]", className)}
       {...props}
     />
   )

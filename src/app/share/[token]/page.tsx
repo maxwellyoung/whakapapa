@@ -1,6 +1,10 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
 import { SharedMemoryView } from '@/components/share/shared-memory-view'
+import { SharedPersonView } from '@/components/share/shared-person-view'
+import { SharePasswordGate } from '@/components/share/share-password-gate'
+import { isShareVerified, resolveShareAccess } from '@/lib/share-access'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { resolveStorageUrl } from '@/lib/storage'
 
 interface SharePageProps {
   params: Promise<{ token: string }>
@@ -8,21 +12,27 @@ interface SharePageProps {
 
 export default async function SharePage({ params }: SharePageProps) {
   const { token } = await params
-  const supabase = await createClient()
+  const verified = await isShareVerified(token)
+  const access = await resolveShareAccess(token, {
+    passwordVerified: verified,
+    incrementView: false,
+  })
 
-  // Fetch the shareable link
-  const { data: link } = await supabase
-    .from('shareable_links')
-    .select('*')
-    .eq('token', token)
-    .single()
-
-  if (!link) {
+  if (access.status === 'not_found') {
     notFound()
   }
 
+  if (access.status === 'password_required' || access.status === 'invalid_password') {
+    return (
+      <SharePasswordGate
+        token={token}
+        initialError={access.status === 'invalid_password' ? 'Incorrect password. Please try again.' : undefined}
+      />
+    )
+  }
+
   // Check if expired
-  if (link.expires_at && new Date(link.expires_at) < new Date()) {
+  if (access.status === 'expired') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
         <div className="text-center max-w-sm px-4">
@@ -38,7 +48,7 @@ export default async function SharePage({ params }: SharePageProps) {
   }
 
   // Check max views
-  if (link.max_views && link.view_count >= link.max_views) {
+  if (access.status === 'max_views_reached') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
         <div className="text-center max-w-sm px-4">
@@ -53,35 +63,73 @@ export default async function SharePage({ params }: SharePageProps) {
     )
   }
 
-  // Increment view count
-  await supabase.rpc('increment_share_view', { link_token: token })
-
   // Fetch the shared content based on entity type
-  if (link.entity_type === 'memory') {
-    const { data: memory } = await supabase
-      .from('memories')
-      .select('*, person:people(id, preferred_name, photo_url, given_names, family_name)')
-      .eq('id', link.entity_id)
-      .single()
-
-    if (!memory) {
+  if (access.status === 'ok' && access.entity_type === 'memory' && access.memory && access.person) {
+    const workspaceName = access.workspace?.name
+    if (!workspaceName) {
       notFound()
     }
 
-    // Fetch workspace for branding
-    const { data: workspace } = await supabase
-      .from('workspaces')
-      .select('name')
-      .eq('id', link.workspace_id)
-      .single()
+    const adminClient = createAdminClient()
+    const mediaUrl =
+      access.memory.media_path && adminClient
+        ? await resolveStorageUrl(adminClient, access.memory.media_path)
+        : access.memory.media_url
+
+    const incremented = await resolveShareAccess(token, {
+      passwordVerified: verified,
+      incrementView: true,
+    })
+    if (incremented.status === 'max_views_reached') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
+          <div className="text-center max-w-sm px-4">
+            <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+              View Limit Reached
+            </h1>
+            <p className="text-stone-500 dark:text-stone-400">
+              This shared link has reached its maximum number of views.
+            </p>
+          </div>
+        </div>
+      )
+    }
 
     return (
       <SharedMemoryView
-        memory={memory}
-        person={memory.person}
-        workspaceName={workspace?.name}
+        memory={{ ...access.memory, media_url: mediaUrl }}
+        person={access.person}
+        workspaceName={workspaceName}
       />
     )
+  }
+
+  if (access.status === 'ok' && access.entity_type === 'person' && access.person) {
+    const workspaceName = access.workspace?.name
+    if (!workspaceName) {
+      notFound()
+    }
+
+    const incremented = await resolveShareAccess(token, {
+      passwordVerified: verified,
+      incrementView: true,
+    })
+    if (incremented.status === 'max_views_reached') {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-stone-950">
+          <div className="text-center max-w-sm px-4">
+            <h1 className="text-2xl font-semibold text-stone-900 dark:text-stone-100 mb-2">
+              View Limit Reached
+            </h1>
+            <p className="text-stone-500 dark:text-stone-400">
+              This shared link has reached its maximum number of views.
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    return <SharedPersonView person={access.person} workspaceName={workspaceName} />
   }
 
   notFound()
@@ -89,35 +137,30 @@ export default async function SharePage({ params }: SharePageProps) {
 
 export async function generateMetadata({ params }: SharePageProps) {
   const { token } = await params
-  const supabase = await createClient()
+  const verified = await isShareVerified(token)
+  const access = await resolveShareAccess(token, {
+    passwordVerified: verified,
+    incrementView: false,
+  })
 
-  const { data: link } = await supabase
-    .from('shareable_links')
-    .select('entity_type, entity_id')
-    .eq('token', token)
-    .single()
-
-  if (!link) {
+  if (access.status !== 'ok') {
     return { title: 'Shared Memory | Whakapapa' }
   }
 
-  if (link.entity_type === 'memory') {
-    const { data: memory } = await supabase
-      .from('memories')
-      .select('title, person:people(preferred_name)')
-      .eq('id', link.entity_id)
-      .single()
+  if (access.entity_type === 'memory' && access.memory) {
+    const personName = access.person?.preferred_name
+    return {
+      title: access.memory.title
+        ? `${access.memory.title} | Whakapapa`
+        : `Memory of ${personName || 'Unknown'} | Whakapapa`,
+      description: `A shared family memory from Whakapapa`,
+    }
+  }
 
-    if (memory) {
-      const personName = Array.isArray(memory.person)
-        ? memory.person[0]?.preferred_name
-        : (memory.person as { preferred_name: string } | null)?.preferred_name
-      return {
-        title: memory.title
-          ? `${memory.title} | Whakapapa`
-          : `Memory of ${personName || 'Unknown'} | Whakapapa`,
-        description: `A shared family memory from Whakapapa`,
-      }
+  if (access.entity_type === 'person' && access.person) {
+    return {
+      title: `${access.person.preferred_name} | Whakapapa`,
+      description: 'A shared family profile from Whakapapa',
     }
   }
 

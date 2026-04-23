@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Sparkles,
@@ -47,6 +47,17 @@ export function QuickCapture() {
   const [suggestionsCreated, setSuggestionsCreated] = useState(0)
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textAreaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    const handler = () => {
+      setResult(null)
+      textAreaRef.current?.focus()
+      textAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+    window.addEventListener('open-quick-capture', handler)
+    return () => window.removeEventListener('open-quick-capture', handler)
+  }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -136,18 +147,19 @@ export function QuickCapture() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-2xl border border-stone-200/60 bg-white p-6 shadow-sm shadow-stone-900/5 dark:border-stone-800/60 dark:bg-stone-900"
+      className="atlas-panel rounded-[1.5rem] p-6"
     >
       <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30">
-          <Sparkles className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+        <div className="atlas-brand-mark flex h-10 w-10 items-center justify-center rounded-xl">
+          <Sparkles className="h-5 w-5 text-[var(--atlas-paper-strong)]" />
         </div>
         <div>
-          <h2 className="font-semibold text-stone-900 dark:text-stone-100">
+          <p className="atlas-label mb-1">Field notes</p>
+          <h2 className="font-serif text-xl font-semibold text-[var(--atlas-ink)]">
             Quick Capture
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400">
-            Paste text or drop a document - AI extracts the family data
+          <p className="text-sm text-[var(--atlas-copy)]">
+            Paste text or drop a document. The archive reads names, dates, and places from the source.
           </p>
         </div>
       </div>
@@ -166,48 +178,49 @@ export function QuickCapture() {
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               className={cn(
-                'relative rounded-xl border-2 border-dashed transition-all duration-200',
+                'relative rounded-[1.35rem] border-2 border-dashed transition-[background-color,border-color,box-shadow] duration-200',
                 isDragging
-                  ? 'border-amber-400 bg-amber-50/50 dark:border-amber-600 dark:bg-amber-950/20'
-                  : 'border-stone-200 dark:border-stone-700'
+                  ? 'border-[var(--atlas-ochre)] bg-[rgba(194,139,63,0.1)] shadow-[0_18px_40px_rgba(194,139,63,0.12)]'
+                  : 'border-[var(--atlas-line)] bg-[rgba(255,249,238,0.42)]'
               )}
             >
               {isDragging && (
-                <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-amber-50/80 dark:bg-amber-950/50 z-10">
-                  <div className="flex flex-col items-center gap-2 text-amber-600 dark:text-amber-400">
+                <div className="absolute inset-0 z-10 flex items-center justify-center rounded-[1.2rem] bg-[rgba(255,244,217,0.86)]">
+                  <div className="flex flex-col items-center gap-2 text-[var(--atlas-ochre)]">
                     <Upload className="h-8 w-8" />
-                    <span className="font-medium">Drop to upload</span>
+                    <span className="font-medium">Drop into the archive</span>
                   </div>
                 </div>
               )}
 
               <Textarea
+                ref={textAreaRef}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="Paste text from a document, letter, birth certificate, obituary...
 
 Example:
 John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith and Elizabeth Brown. He married Mary Jane Wilson on 15 March 1905 in Christchurch. They had three children: William (b. 1906), Margaret (b. 1908), and Thomas (b. 1912)."
-                className="min-h-[200px] resize-none border-0 bg-transparent focus:ring-0"
+                className="min-h-[210px] resize-none border-0 bg-transparent shadow-none focus:ring-0"
                 disabled={isProcessing}
               />
 
               {/* File indicator */}
               {file && (
-                <div className="flex items-center gap-2 border-t border-stone-100 dark:border-stone-800 px-3 py-2">
+                <div className="flex items-center gap-2 border-t border-[var(--atlas-line)] px-3 py-2">
                   {file.type.startsWith('image/') ? (
-                    <ImageIcon className="h-4 w-4 text-stone-400" />
+                    <ImageIcon className="h-4 w-4 text-[var(--atlas-muted)]" />
                   ) : (
-                    <FileText className="h-4 w-4 text-stone-400" />
+                    <FileText className="h-4 w-4 text-[var(--atlas-muted)]" />
                   )}
-                  <span className="text-sm text-stone-500 truncate flex-1">
+                  <span className="flex-1 truncate text-sm text-[var(--atlas-copy)]">
                     {file.name}
                   </span>
                   <button
                     onClick={() => setFile(null)}
-                    className="p-1 hover:bg-stone-100 dark:hover:bg-stone-800 rounded"
+                    className="rounded p-1 hover:bg-[var(--atlas-accent-soft)]"
                   >
-                    <X className="h-3 w-3 text-stone-400" />
+                    <X className="h-3 w-3 text-[var(--atlas-muted)]" />
                   </button>
                 </div>
               )}
@@ -261,15 +274,15 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
             className="space-y-4"
           >
             {/* Success header */}
-            <div className="flex items-center gap-3 rounded-xl bg-green-50 dark:bg-green-950/30 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/50">
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+            <div className="flex items-center gap-3 rounded-[1.2rem] border border-[rgba(91,119,83,0.18)] bg-[rgba(91,119,83,0.1)] p-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(91,119,83,0.14)]">
+                <CheckCircle className="h-5 w-5 text-[var(--atlas-jade)]" />
               </div>
               <div>
-                <p className="font-medium text-green-800 dark:text-green-200">
+                <p className="font-medium text-[var(--atlas-ink)]">
                   Extraction Complete
                 </p>
-                <p className="text-sm text-green-600 dark:text-green-400">
+                <p className="text-sm text-[var(--atlas-copy)]">
                   {result.people.length} people found, {suggestionsCreated} suggestions created
                 </p>
               </div>
@@ -278,7 +291,7 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
             {/* Extracted people preview */}
             {result.people.length > 0 && (
               <div className="space-y-2">
-                <h3 className="text-sm font-medium text-stone-700 dark:text-stone-300 flex items-center gap-2">
+                <h3 className="flex items-center gap-2 text-sm font-medium text-[var(--atlas-copy)]">
                   <Users className="h-4 w-4" />
                   People Found
                 </h3>
@@ -286,13 +299,13 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
                   {result.people.slice(0, 5).map((person, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between rounded-lg bg-stone-50 dark:bg-stone-800/50 p-3"
+                      className="flex items-center justify-between rounded-xl border border-[var(--atlas-line)] bg-[rgba(255,249,238,0.58)] p-3"
                     >
                       <div>
-                        <p className="font-medium text-stone-900 dark:text-stone-100">
+                        <p className="font-medium text-[var(--atlas-ink)]">
                           {person.name}
                         </p>
-                        <div className="flex items-center gap-3 text-xs text-stone-500 dark:text-stone-400">
+                        <div className="flex items-center gap-3 text-xs text-[var(--atlas-muted)]">
                           {(person.birth_date || person.death_date) && (
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
@@ -307,7 +320,7 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
                           )}
                         </div>
                       </div>
-                      <div className="text-xs text-stone-400">
+                      <div className="text-xs text-[var(--atlas-muted)]">
                         {person.confidence >= 0.8
                           ? 'High'
                           : person.confidence >= 0.5
@@ -317,7 +330,7 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
                     </div>
                   ))}
                   {result.people.length > 5 && (
-                    <p className="text-sm text-stone-400 text-center">
+                    <p className="text-center text-sm text-[var(--atlas-muted)]">
                       +{result.people.length - 5} more
                     </p>
                   )}
@@ -327,8 +340,8 @@ John Robert Smith (1880-1952) was born in Timaru, New Zealand to William Smith a
 
             {/* Notes from AI */}
             {result.notes && result.notes.length > 0 && (
-              <div className="rounded-lg bg-amber-50 dark:bg-amber-950/20 p-3">
-                <p className="text-sm text-amber-700 dark:text-amber-300">
+              <div className="rounded-xl border border-[rgba(194,139,63,0.2)] bg-[rgba(194,139,63,0.1)] p-3">
+                <p className="text-sm text-[var(--atlas-ochre)]">
                   {result.notes[0]}
                 </p>
               </div>

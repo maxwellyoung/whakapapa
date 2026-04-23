@@ -66,9 +66,9 @@ export function VisibilityControl({ entityType, entityId }: VisibilityControlPro
           .select('*')
           .eq('entity_type', entityType)
           .eq('entity_id', entityId)
-          .single(),
+          .maybeSingle(),
         supabase.from('groups').select('*').eq('workspace_id', currentWorkspace.id),
-        supabase.from('memberships').select('*, profiles(*)').eq('workspace_id', currentWorkspace.id),
+        supabase.from('memberships').select('*').eq('workspace_id', currentWorkspace.id),
       ])
 
       if (visData) {
@@ -81,7 +81,19 @@ export function VisibilityControl({ entityType, entityId }: VisibilityControlPro
       }
 
       if (groupData) setGroups(groupData)
-      if (memberData) setMembers(memberData as MembershipWithProfile[])
+      if (memberData) {
+        const userIds = [...new Set(memberData.map((member) => member.user_id))]
+        const { data: profileRows } = userIds.length > 0
+          ? await supabase.from('profiles').select('*').in('id', userIds)
+          : { data: [] as never[] }
+        const profileMap = new Map((profileRows ?? []).map((profile) => [profile.id, profile]))
+        setMembers(
+          memberData.map((member) => ({
+            ...member,
+            profiles: profileMap.get(member.user_id) ?? null,
+          })) as MembershipWithProfile[]
+        )
+      }
       setLoading(false)
     }
 

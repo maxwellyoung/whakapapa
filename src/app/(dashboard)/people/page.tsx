@@ -179,10 +179,11 @@ export default function PeoplePage() {
       <header className="mb-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+            <div className="atlas-label mb-3">Whānau index</div>
+            <h1 className="font-serif text-4xl font-medium leading-none tracking-[-0.04em] text-[var(--atlas-ink)] md:text-5xl">
               People
             </h1>
-            <p className="mt-1.5 text-sm text-stone-500 dark:text-stone-400">
+            <p className="mt-3 text-sm leading-6 text-[var(--atlas-copy)]">
               {people.length === 0
                 ? 'Start building your family tree'
                 : `${people.length} ${people.length === 1 ? 'person' : 'people'}`}
@@ -203,16 +204,16 @@ export default function PeoplePage() {
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.3 }}
-            className="mt-6 flex flex-col sm:flex-row gap-3"
+            className="atlas-panel mt-6 flex flex-col gap-3 rounded-[1.35rem] p-3 sm:flex-row"
           >
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400 dark:text-stone-500" strokeWidth={1.5} />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--atlas-muted)]" strokeWidth={1.5} />
               <Input
                 placeholder="Search by name..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
+                className="border-[var(--atlas-line)] bg-[rgba(255,250,244,0.76)] pl-10 text-[var(--atlas-ink)] placeholder:text-[var(--atlas-muted)]"
               />
             </div>
 
@@ -231,7 +232,7 @@ export default function PeoplePage() {
                     <DropdownMenuItem
                       key={value}
                       onClick={() => setSortBy(value)}
-                      className={cn(sortBy === value && 'bg-stone-100 dark:bg-stone-800')}
+                      className={cn(sortBy === value && 'bg-[var(--atlas-accent-soft)] text-[var(--atlas-accent)]')}
                     >
                       {label}
                     </DropdownMenuItem>
@@ -240,13 +241,13 @@ export default function PeoplePage() {
               </DropdownMenu>
 
               {/* View mode toggle */}
-              <div className="flex items-center rounded-lg border border-stone-200 dark:border-stone-700 p-0.5">
+              <div className="flex items-center rounded-lg border border-[var(--atlas-line)] bg-[rgba(255,250,244,0.6)] p-0.5">
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
                     'h-8 w-8 p-0',
-                    viewMode === 'grid' && 'bg-stone-100 dark:bg-stone-800'
+                    viewMode === 'grid' && 'bg-[var(--atlas-accent-soft)] text-[var(--atlas-accent)]'
                   )}
                   onClick={() => setViewMode('grid')}
                 >
@@ -258,7 +259,7 @@ export default function PeoplePage() {
                   size="sm"
                   className={cn(
                     'h-8 w-8 p-0',
-                    viewMode === 'list' && 'bg-stone-100 dark:bg-stone-800'
+                    viewMode === 'list' && 'bg-[var(--atlas-accent-soft)] text-[var(--atlas-accent)]'
                   )}
                   onClick={() => setViewMode('list')}
                 >
@@ -309,7 +310,7 @@ export default function PeoplePage() {
             variants={container}
             initial="hidden"
             animate="show"
-            className="rounded-xl border border-stone-200/60 dark:border-stone-800/60 overflow-hidden bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm divide-y divide-stone-100 dark:divide-stone-800"
+            className="atlas-panel overflow-hidden rounded-[1.35rem] divide-y divide-[var(--atlas-line)]"
           >
             {filteredPeople.map((person) => {
               const birthDate = formatFlexibleDate({
@@ -334,30 +335,30 @@ export default function PeoplePage() {
                 <motion.div key={person.id} variants={item}>
                   <Link
                     href={`/people/${person.id}`}
-                    className="flex items-center gap-4 px-4 py-3 hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors group"
+                    className="group flex items-center gap-4 px-4 py-3 transition-colors hover:bg-[rgba(203,153,79,0.08)]"
                   >
-                    <Avatar className="h-10 w-10 ring-2 ring-white/80 dark:ring-stone-900/80 shadow-sm">
+                    <Avatar className="h-10 w-10 shadow-sm ring-2 ring-[rgba(255,247,232,0.9)]">
                       <AvatarImage
                         src={person.photo_url ?? undefined}
                         alt={person.preferred_name}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-stone-100 to-stone-200 text-stone-600 dark:from-stone-800 dark:to-stone-700 dark:text-stone-300 text-sm font-medium">
+                      <AvatarFallback className="bg-[var(--atlas-accent-soft)] text-sm font-medium text-[var(--atlas-accent)]">
                         {getInitials(person.preferred_name)}
                       </AvatarFallback>
                     </Avatar>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2">
-                        <h3 className="font-medium text-stone-900 dark:text-stone-100 truncate">
+                        <h3 className="truncate font-medium text-[var(--atlas-ink)]">
                           {person.preferred_name}
                         </h3>
                         {person.family_name && person.family_name !== person.preferred_name && (
-                          <span className="text-sm text-stone-500 dark:text-stone-400 truncate hidden sm:inline">
+                          <span className="hidden truncate text-sm text-[var(--atlas-muted)] sm:inline">
                             ({person.given_names} {person.family_name})
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-3 text-sm text-stone-500 dark:text-stone-400">
+                      <div className="flex items-center gap-3 text-sm text-[var(--atlas-copy)]">
                         {lifespan && (
                           <span className="tabular-nums">{lifespan}</span>
                         )}
@@ -379,7 +380,7 @@ export default function PeoplePage() {
                       strokeWidth="1.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      className="text-stone-300 dark:text-stone-600 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                      className="flex-shrink-0 text-[var(--atlas-muted)] opacity-0 transition-opacity group-hover:opacity-100"
                     >
                       <path d="M6 4l4 4-4 4" />
                     </svg>

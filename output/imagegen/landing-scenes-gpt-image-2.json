@@ -1,0 +1,90 @@
+[
+  {
+    "name": "hero-artifact",
+    "model": "gpt-image-2",
+    "use_case": "illustration-story",
+    "asset_type": "landing page hero plate",
+    "primary_request": "A retro adventure-game style illustration of a family letter on a desk beside an oil lamp, with a river crossing visible beyond the window.",
+    "style_medium": "dithered pixel-art illustration with hand-painted mood",
+    "composition_framing": "wide cinematic composition, letter dominant in the foreground, lamp on the right, river horizon beyond, enough negative space for UI overlays",
+    "lighting_mood": "quiet dusk, warm lamplight against deep teal night tones",
+    "color_palette": "inspired by Monkey Island 1 but restrained: dusk navy, sea teal, faded jade, ochre sand, coral rust, parchment cream",
+    "constraints": [
+      "consistent site-wide palette",
+      "visible dithering texture",
+      "no text",
+      "no watermark",
+      "avoid glossy modern 3D rendering"
+    ]
+  },
+  {
+    "name": "recovery-photo",
+    "model": "gpt-image-2",
+    "use_case": "illustration-story",
+    "asset_type": "landing page recovery section artwork",
+    "primary_request": "A dithered illustration of an old family photo being annotated and indexed on a dark archival desk.",
+    "style_medium": "retro painterly pixel-art illustration",
+    "composition_framing": "three-quarter top-down view, photo print large in frame, indexing cards and marks nearby",
+    "lighting_mood": "warm archival worklight with cool shadow edges",
+    "color_palette": "same Monkey Island 1 inspired palette as the hero scene",
+    "constraints": [
+      "same world and palette as hero-artifact",
+      "no text",
+      "no watermark",
+      "clear dithering",
+      "avoid photorealism"
+    ]
+  },
+  {
+    "name": "voice-interview",
+    "model": "gpt-image-2",
+    "use_case": "illustration-story",
+    "asset_type": "landing page voice section artwork",
+    "primary_request": "A kitchen-table korero being recorded, with two family members in conversation and a simple microphone or recorder present.",
+    "style_medium": "retro dithered illustration with soft, expressive silhouettes",
+    "composition_framing": "medium-wide interior scene, intimate but readable at small sizes",
+    "lighting_mood": "first-light morning warmth, calm and attentive",
+    "color_palette": "same restrained Monkey Island 1 inspired palette",
+    "constraints": [
+      "no text",
+      "no watermark",
+      "clear shape language",
+      "visible dithering texture",
+      "avoid exaggerated cartoon comedy"
+    ]
+  },
+  {
+    "name": "lineage-map",
+    "model": "gpt-image-2",
+    "use_case": "stylized-concept",
+    "asset_type": "landing page lineage section backdrop",
+    "primary_request": "An atmospheric branching river-and-stars composition that symbolises lineage, memory, and connection.",
+    "style_medium": "abstract retro adventure-game illustration with dithered gradients",
+    "composition_framing": "vertical and spacious enough to sit behind a UI graph overlay",
+    "lighting_mood": "night sky, low glow, ceremonial quiet",
+    "color_palette": "same Monkey Island 1 inspired palette with strong teal and ochre contrast",
+    "constraints": [
+      "must read behind interface overlays",
+      "no text",
+      "no watermark",
+      "visible but subtle dithering"
+    ]
+  },
+  {
+    "name": "transmission-thread",
+    "model": "gpt-image-2",
+    "use_case": "illustration-story",
+    "asset_type": "landing page transmission section artwork",
+    "primary_request": "A memory card or letter being passed through a family message thread, visualised as connected cards and gentle glowing paths.",
+    "style_medium": "retro dithered illustration with understated magical realism",
+    "composition_framing": "balanced frame with one main card on the left and connected cards on the right",
+    "lighting_mood": "warm transmission glow against deep navy shadows",
+    "color_palette": "same Monkey Island 1 inspired palette as the rest of the site",
+    "constraints": [
+      "same world as the other four scenes",
+      "no text",
+      "no watermark",
+      "avoid glossy UI mockup look"
+    ]
+  }
+]

@@ -1,18 +1,25 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
 interface StoryGenerationContext {
-  person: any
-  relationships: any[]
-  events: any[]
-  memories: any[]
-  sources: any[]
+  person: Record<string, unknown> | null
+  relationships: Array<Record<string, unknown>>
+  events: Array<Record<string, unknown>>
+  memories: Array<Record<string, unknown>>
+  sources: Array<Record<string, unknown>>
 }
+
+const requestSchema = z.object({
+  workspace_id: z.string().min(1),
+  person_id: z.string().min(1),
+})
 
 const STORY_GENERATION_PROMPT = `You are a master storyteller crafting family history narratives. Your task is to weave the provided genealogical data into a compelling, natural language story about a person's life.
 
@@ -55,11 +62,11 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { workspace_id, person_id } = body
-
-    if (!workspace_id || !person_id) {
+    const parsed = requestSchema.safeParse(body)
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
+    const { workspace_id, person_id } = parsed.data
 
     // Check if we have an API key
     if (!process.env.ANTHROPIC_API_KEY) {
@@ -91,7 +98,11 @@ export async function POST(request: Request) {
   }
 }
 
-async function gatherPersonContext(supabase: any, workspace_id: string, person_id: string): Promise<StoryGenerationContext> {
+async function gatherPersonContext(
+  supabase: SupabaseClient,
+  workspace_id: string,
+  person_id: string
+): Promise<StoryGenerationContext> {
   // Fetch person data
   const { data: person } = await supabase
     .from('people')
@@ -120,7 +131,7 @@ async function gatherPersonContext(supabase: any, workspace_id: string, person_i
     .eq('workspace_id', workspace_id)
 
   // Combine relationships
-  const relationships = [
+  const relationships: Array<Record<string, unknown>> = [
     ...(relationshipsA || []).map(r => ({ ...r, related_person: r.person_b, direction: 'outgoing' })),
     ...(relationshipsB || []).map(r => ({ ...r, related_person: r.person_a, direction: 'incoming' }))
   ]
@@ -155,51 +166,58 @@ async function gatherPersonContext(supabase: any, workspace_id: string, person_i
   return {
     person: person || null,
     relationships: relationships || [],
-    events: (events || []).map(e => e.event).filter(Boolean),
-    memories: memories || [],
-    sources: (sources || []).map(s => s.source).filter(Boolean)
+    events: (events || []).map(e => e.event as Record<string, unknown>).filter(Boolean),
+    memories: (memories as Array<Record<string, unknown>>) || [],
+    sources: (sources || []).map(s => s.source as Record<string, unknown>).filter(Boolean)
   }
 }
 
 async function generateStory(context: StoryGenerationContext): Promise<string> {
   const { person, relationships, events, memories, sources } = context
+  if (!person) return ''
+
+  const personData = person as Record<string, unknown>
 
   // Build context for Claude
   let contextText = `PERSON DATA:\n`
-  contextText += `Name: ${person.preferred_name}\n`
-  if (person.given_names) contextText += `Given names: ${person.given_names}\n`
-  if (person.family_name) contextText += `Family name: ${person.family_name}\n`
-  if (person.birth_date) {
-    const precision = person.birth_date_precision === 'exact' ? '' : ' (approximate)'
-    contextText += `Birth: ${person.birth_date}${precision}`
-    if (person.birth_place) contextText += ` in ${person.birth_place}`
+  contextText += `Name: ${String(personData.preferred_name || 'Unknown')}\n`
+  if (personData.given_names) contextText += `Given names: ${String(personData.given_names)}\n`
+  if (personData.family_name) contextText += `Family name: ${String(personData.family_name)}\n`
+  if (personData.birth_date) {
+    const precision = personData.birth_date_precision === 'exact' ? '' : ' (approximate)'
+    contextText += `Birth: ${String(personData.birth_date)}${precision}`
+    if (personData.birth_place) contextText += ` in ${String(personData.birth_place)}`
     contextText += `\n`
   }
-  if (person.death_date) {
-    const precision = person.death_date_precision === 'exact' ? '' : ' (approximate)'
-    contextText += `Death: ${person.death_date}${precision}`
-    if (person.death_place) contextText += ` in ${person.death_place}`
+  if (personData.death_date) {
+    const precision = personData.death_date_precision === 'exact' ? '' : ' (approximate)'
+    contextText += `Death: ${String(personData.death_date)}${precision}`
+    if (personData.death_place) contextText += ` in ${String(personData.death_place)}`
     contextText += `\n`
   }
-  if (person.gender) contextText += `Gender: ${person.gender}\n`
-  if (person.bio) contextText += `Bio notes: ${person.bio}\n`
+  if (personData.gender) contextText += `Gender: ${String(personData.gender)}\n`
+  if (personData.bio) contextText += `Bio notes: ${String(personData.bio)}\n`
 
   // Add relationships
   if (relationships.length > 0) {
     contextText += `\nRELATIONSHIPS:\n`
-    relationships.forEach(rel => {
-      const relatedPerson = rel.related_person
-      const name = relatedPerson.preferred_name || `${relatedPerson.given_names || ''} ${relatedPerson.family_name || ''}`.trim()
+    relationships.forEach((rel) => {
+      const relationship = rel as Record<string, unknown>
+      const relatedPerson = (relationship.related_person || {}) as Record<string, unknown>
+      const name = String(
+        relatedPerson.preferred_name ||
+          `${String(relatedPerson.given_names || '')} ${String(relatedPerson.family_name || '')}`.trim()
+      )
       
-      let relationshipType = rel.relationship_type
-      if (rel.direction === 'incoming') {
+      let relationshipType = String(relationship.relationship_type || 'related')
+      if (relationship.direction === 'incoming') {
         // Flip the relationship perspective
         if (relationshipType === 'parent_child') relationshipType = 'child_parent'
       }
       
       contextText += `- ${relationshipType.replace('_', ' ')} of ${name}`
-      if (relatedPerson.birth_date) contextText += ` (born ${relatedPerson.birth_date})`
-      if (relatedPerson.death_date) contextText += ` (died ${relatedPerson.death_date})`
+      if (relatedPerson.birth_date) contextText += ` (born ${String(relatedPerson.birth_date)})`
+      if (relatedPerson.death_date) contextText += ` (died ${String(relatedPerson.death_date)})`
       contextText += `\n`
     })
   }
@@ -207,11 +225,12 @@ async function generateStory(context: StoryGenerationContext): Promise<string> {
   // Add events
   if (events.length > 0) {
     contextText += `\nLIFE EVENTS:\n`
-    events.forEach(event => {
-      contextText += `- ${event.event_type}: ${event.title || 'Event'}`
-      if (event.event_date) contextText += ` (${event.event_date})`
-      if (event.location) contextText += ` in ${event.location}`
-      if (event.description) contextText += ` - ${event.description}`
+    events.forEach((event) => {
+      const eventData = event as Record<string, unknown>
+      contextText += `- ${String(eventData.event_type || 'event')}: ${String(eventData.title || 'Event')}`
+      if (eventData.event_date) contextText += ` (${String(eventData.event_date)})`
+      if (eventData.location) contextText += ` in ${String(eventData.location)}`
+      if (eventData.description) contextText += ` - ${String(eventData.description)}`
       contextText += `\n`
     })
   }
@@ -219,18 +238,20 @@ async function generateStory(context: StoryGenerationContext): Promise<string> {
   // Add memories/stories
   if (memories.length > 0) {
     contextText += `\nMEMORIES AND STORIES:\n`
-    memories.slice(0, 5).forEach(memory => { // Limit to avoid token limit
-      contextText += `- ${memory.title || memory.memory_type}: ${memory.content}\n`
+    memories.slice(0, 5).forEach((memory) => {
+      const memoryData = memory as Record<string, unknown>
+      contextText += `- ${String(memoryData.title || memoryData.memory_type || 'Memory')}: ${String(memoryData.content || '')}\n`
     })
   }
 
   // Add source excerpts
   if (sources.length > 0) {
     contextText += `\nSOURCE MATERIAL:\n`
-    sources.slice(0, 3).forEach(source => {
-      contextText += `- From "${source.title}": ${source.description || ''}\n`
-      if (source.extracted_text) {
-        contextText += `  Content: ${source.extracted_text.substring(0, 200)}...\n`
+    sources.slice(0, 3).forEach((source) => {
+      const sourceData = source as Record<string, unknown>
+      contextText += `- From "${String(sourceData.title || 'Source')}": ${String(sourceData.description || '')}\n`
+      if (typeof sourceData.extracted_text === 'string') {
+        contextText += `  Content: ${sourceData.extracted_text.substring(0, 200)}...\n`
       }
     })
   }

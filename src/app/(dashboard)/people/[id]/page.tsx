@@ -24,6 +24,7 @@ import { QuickVoiceRecorder } from '@/components/people/quick-voice-recorder'
 import { PersonStory } from '@/components/people/person-story'
 import { Skeleton, SkeletonAvatar, SkeletonText } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
+import { extractStoragePath } from '@/lib/storage'
 import type { Person, Relationship } from '@/types'
 
 function getInitials(name: string): string {
@@ -172,17 +173,22 @@ export default function PersonDetailPage() {
     try {
       const supabase = createClient()
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const filePath = `${currentWorkspace.id}/${crypto.randomUUID()}.${fileExt}`
+      const filePath = `${currentWorkspace.id}/photos/${personId}.${fileExt}`
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
         .from('sources')
-        .upload(filePath, file, { cacheControl: '3600' })
+        .upload(filePath, file, { cacheControl: '3600', upsert: true })
 
       if (uploadError) throw uploadError
 
       // Get public URL
       const { data: urlData } = supabase.storage.from('sources').getPublicUrl(filePath)
+
+      const previousPath = extractStoragePath(photoUrl)
+      if (previousPath && previousPath !== filePath) {
+        await supabase.storage.from('sources').remove([previousPath])
+      }
 
       // Update person's photo_url
       const { error: updateError } = await supabase

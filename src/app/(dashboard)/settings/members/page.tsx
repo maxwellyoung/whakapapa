@@ -37,6 +37,7 @@ import {
   getRoleLabel,
   getRoleDescription,
   canManageMembers,
+  canChangeRole,
   ASSIGNABLE_ROLES,
 } from '@/lib/permissions'
 import type { MembershipWithProfile, UserRole, Invite } from '@/types'
@@ -59,13 +60,24 @@ export default function MembersPage() {
 
       const supabase = createClient()
 
-      const { data: memberData } = await supabase
+      const { data: memberRows } = await supabase
         .from('memberships')
-        .select('*, profiles(*)')
+        .select('*')
         .eq('workspace_id', currentWorkspace.id)
 
-      if (memberData) {
-        setMembers(memberData as MembershipWithProfile[])
+      if (memberRows) {
+        const userIds = [...new Set(memberRows.map((member) => member.user_id))]
+        const { data: profileRows } = userIds.length > 0
+          ? await supabase.from('profiles').select('*').in('id', userIds)
+          : { data: [] as never[] }
+
+        const profileMap = new Map((profileRows ?? []).map((profile) => [profile.id, profile]))
+        setMembers(
+          memberRows.map((member) => ({
+            ...member,
+            profiles: profileMap.get(member.user_id) ?? null,
+          })) as MembershipWithProfile[]
+        )
       }
 
       const { data: inviteData } = await supabase
@@ -147,13 +159,23 @@ export default function MembersPage() {
       return
     }
 
-    const { error } = await supabase
-      .from('memberships')
-      .delete()
-      .eq('id', membershipId)
+    if (!userRole) {
+      toast.error('You do not have permission to remove this member')
+      return
+    }
 
-    if (error) {
-      toast.error('Failed to remove member')
+    const targetMember = members.find((member) => member.id === membershipId)
+    if (!targetMember || !canChangeRole(userRole, targetMember.role)) {
+      toast.error('You do not have permission to remove this member')
+      return
+    }
+
+    const { data, error } = await supabase.rpc('remove_workspace_member', {
+      target_membership_id: membershipId,
+    })
+
+    if (error || !data?.success) {
+      toast.error(data?.error ?? 'Failed to remove member')
       return
     }
 
@@ -170,13 +192,24 @@ export default function MembersPage() {
       return
     }
 
-    const { error } = await supabase
-      .from('memberships')
-      .update({ role: newRole })
-      .eq('id', membershipId)
+    if (!userRole || !canChangeRole(userRole, newRole)) {
+      toast.error('You do not have permission to assign that role')
+      return
+    }
 
-    if (error) {
-      toast.error('Failed to change role')
+    const targetMember = members.find((member) => member.id === membershipId)
+    if (!targetMember || !canChangeRole(userRole, targetMember.role)) {
+      toast.error('You do not have permission to change this member')
+      return
+    }
+
+    const { data, error } = await supabase.rpc('update_membership_role', {
+      target_membership_id: membershipId,
+      new_role: newRole,
+    })
+
+    if (error || !data?.success) {
+      toast.error(data?.error ?? 'Failed to change role')
       return
     }
 
@@ -304,6 +337,10 @@ export default function MembersPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {members.map((member) => {
+              const canManageMember = !!userRole && canChangeRole(userRole, member.role)
+              const assignableRoles = userRole
+                ? ASSIGNABLE_ROLES.filter((role) => canChangeRole(userRole, role))
+                : []
               const name = member.profiles?.full_name ?? 'Unknown'
               const initials = name
                 .split(' ')
@@ -328,7 +365,7 @@ export default function MembersPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 self-end sm:self-auto">
-                    {isAdmin && member.role !== 'owner' ? (
+                    {isAdmin && member.role !== 'owner' && canManageMember ? (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm" className="gap-2">
@@ -337,7 +374,7 @@ export default function MembersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          {ASSIGNABLE_ROLES.map((role) => (
+                          {assignableRoles.map((role) => (
                             <DropdownMenuItem
                               key={role}
                               onClick={() => handleChangeRole(member.id, member.user_id, role)}

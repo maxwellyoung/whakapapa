@@ -39,17 +39,36 @@ export async function updateSession(request: NextRequest) {
   const isInviteRoute = request.nextUrl.pathname.startsWith('/invite')
   const isAuthCallback = request.nextUrl.pathname.startsWith('/auth/callback')
   const isShareRoute = request.nextUrl.pathname.startsWith('/share')
-  const isPublicRoute = isHome || isAuthRoute || isInviteRoute || isAuthCallback || isShareRoute
+  const isPublicInviteApi = request.nextUrl.pathname.startsWith('/api/invite/')
+  const isPublicShareApi = request.nextUrl.pathname.startsWith('/api/share/')
+  const isManifest = request.nextUrl.pathname === '/manifest.json'
+  const isServiceWorker = request.nextUrl.pathname === '/sw.js'
+  const isPublicRoute =
+    isHome ||
+    isAuthRoute ||
+    isInviteRoute ||
+    isAuthCallback ||
+    isShareRoute ||
+    isPublicInviteApi ||
+    isPublicShareApi ||
+    isManifest ||
+    isServiceWorker
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('next', request.nextUrl.pathname + request.nextUrl.search)
     return NextResponse.redirect(url)
   }
 
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/'
+    const requestedNext = request.nextUrl.searchParams.get('next')
+    const safeNext = requestedNext && requestedNext.startsWith('/') && !requestedNext.startsWith('//')
+      ? requestedNext
+      : '/'
+    url.pathname = safeNext
+    url.search = ''
     return NextResponse.redirect(url)
   }
 

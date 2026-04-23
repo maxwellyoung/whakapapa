@@ -23,7 +23,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { formatFlexibleDate } from '@/lib/dates'
-import type { Person, Source, Event } from '@/types'
 
 interface SearchResult {
   type: 'person' | 'source' | 'event'
@@ -38,6 +37,10 @@ interface SearchFilters {
   location?: string
   yearFrom?: string
   yearTo?: string
+}
+
+function sanitizeSearchTerm(term: string): string {
+  return term.replace(/[%_,'()]/g, ' ').replace(/\s+/g, ' ').trim()
 }
 
 export function SearchCommand() {
@@ -56,7 +59,7 @@ export function SearchCommand() {
   // Keyboard shortcut
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+      if (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault()
         setOpen((open) => !open)
       }
@@ -70,7 +73,9 @@ export function SearchCommand() {
   }
 
   const search = useCallback(async (searchQuery: string, searchFilters: SearchFilters) => {
-    if (!currentWorkspace || (searchQuery.length < 2 && !searchFilters.location && !searchFilters.yearFrom)) {
+    const safeQuery = sanitizeSearchTerm(searchQuery)
+    const safeLocation = sanitizeSearchTerm(searchFilters.location || '')
+    if (!currentWorkspace || (safeQuery.length < 2 && !safeLocation && !searchFilters.yearFrom)) {
       setResults([])
       return
     }
@@ -86,16 +91,16 @@ export function SearchCommand() {
       .eq('workspace_id', currentWorkspace.id)
 
     // Text search
-    if (searchQuery.length >= 2) {
+    if (safeQuery.length >= 2) {
       peopleQuery = peopleQuery.or(
-        `preferred_name.ilike.%${searchQuery}%,given_names.ilike.%${searchQuery}%,family_name.ilike.%${searchQuery}%,birth_place.ilike.%${searchQuery}%,death_place.ilike.%${searchQuery}%`
+        `preferred_name.ilike.%${safeQuery}%,given_names.ilike.%${safeQuery}%,family_name.ilike.%${safeQuery}%,birth_place.ilike.%${safeQuery}%,death_place.ilike.%${safeQuery}%`
       )
     }
 
     // Location filter
-    if (searchFilters.location) {
+    if (safeLocation) {
       peopleQuery = peopleQuery.or(
-        `birth_place.ilike.%${searchFilters.location}%,death_place.ilike.%${searchFilters.location}%`
+        `birth_place.ilike.%${safeLocation}%,death_place.ilike.%${safeLocation}%`
       )
     }
 
@@ -136,13 +141,13 @@ export function SearchCommand() {
     }
 
     // Only search sources and events if we have a text query
-    if (searchQuery.length >= 2) {
+    if (safeQuery.length >= 2) {
       // Search sources
       const { data: sources } = await supabase
         .from('sources')
         .select('id, title, source_type, description')
         .eq('workspace_id', currentWorkspace.id)
-        .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+        .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,content.ilike.%${safeQuery}%`)
         .limit(5)
 
       if (sources) {
@@ -161,10 +166,10 @@ export function SearchCommand() {
         .from('events')
         .select('id, title, event_type, location, event_date')
         .eq('workspace_id', currentWorkspace.id)
-        .or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%`)
+        .or(`title.ilike.%${safeQuery}%,description.ilike.%${safeQuery}%,location.ilike.%${safeQuery}%`)
 
-      if (searchFilters.location) {
-        eventsQuery = eventsQuery.ilike('location', `%${searchFilters.location}%`)
+      if (safeLocation) {
+        eventsQuery = eventsQuery.ilike('location', `%${safeLocation}%`)
       }
 
       const { data: events } = await eventsQuery.limit(5)
@@ -230,71 +235,80 @@ export function SearchCommand() {
     <>
       <Button
         variant="outline"
-        className="relative w-full justify-start text-sm text-stone-400 dark:text-stone-500"
+        className="relative h-12 w-full justify-start rounded-2xl border-[rgba(101,76,57,0.16)] bg-[rgba(255,250,244,0.76)] px-4 text-sm text-[var(--atlas-copy)] shadow-none hover:bg-[rgba(255,248,239,0.96)]"
         onClick={() => setOpen(true)}
       >
-        <Search className="mr-2 h-4 w-4" strokeWidth={1.5} />
+        <Search className="mr-2 h-4 w-4 text-[var(--atlas-muted)]" strokeWidth={1.5} />
         <span>Search...</span>
-        <kbd className="pointer-events-none absolute right-2.5 hidden h-5 select-none items-center gap-1 rounded-md border border-stone-200 bg-stone-100/50 px-1.5 font-mono text-[10px] font-medium text-stone-500 sm:flex dark:border-stone-700 dark:bg-stone-800/50 dark:text-stone-400">
+        <kbd className="pointer-events-none absolute right-2.5 hidden h-5 select-none items-center gap-1 rounded-md border border-[rgba(101,76,57,0.16)] bg-[rgba(255,251,246,0.85)] px-1.5 font-mono text-[10px] font-medium text-[var(--atlas-muted)] sm:flex">
           <span className="text-xs">⌘</span>K
+          <span className="text-[9px]">⇧</span>
         </kbd>
       </Button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <div className="flex items-center border-b border-stone-200 dark:border-stone-800">
+        <div className="flex items-center border-b border-[rgba(101,76,57,0.12)] bg-[rgba(252,247,241,0.98)]">
           <CommandInput
             placeholder="Search people, sources, events..."
             value={query}
             onValueChange={setQuery}
-            className="flex-1"
+            className="flex-1 text-[var(--atlas-ink)]"
           />
           <Popover open={showFilters} onOpenChange={setShowFilters}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="mr-2 relative"
+                className="mr-2 relative rounded-full text-[var(--atlas-copy)] hover:bg-[rgba(203,153,79,0.08)] hover:text-[var(--atlas-ink)]"
               >
                 <Filter className="h-4 w-4" />
                 {activeFilterCount > 0 && (
-                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-indigo-500 text-[10px] text-white flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--atlas-accent)] text-[10px] text-white">
                     {activeFilterCount}
                   </span>
                 )}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-72" align="end">
+            <PopoverContent
+              className="w-72 rounded-2xl border-[rgba(101,76,57,0.12)] bg-[rgba(255,251,246,0.98)] text-[var(--atlas-copy)] shadow-[0_24px_50px_rgba(101,76,57,0.12)]"
+              align="end"
+            >
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-medium text-sm">Filters</h4>
+                  <h4 className="text-sm font-medium text-[var(--atlas-ink)]">Filters</h4>
                   {hasActiveFilters && (
-                    <Button variant="ghost" size="sm" onClick={clearFilters} className="h-auto py-1 px-2 text-xs">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="h-auto rounded-full px-2 py-1 text-xs text-[var(--atlas-copy)] hover:bg-[rgba(203,153,79,0.08)] hover:text-[var(--atlas-ink)]"
+                    >
                       Clear all
                     </Button>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-stone-500">Location</label>
+                  <label className="text-xs font-medium text-[var(--atlas-muted)]">Location</label>
                   <div className="relative">
-                    <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                    <MapPin className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--atlas-muted)]" />
                     <Input
                       placeholder="e.g., Scotland, Auckland"
                       value={filters.location || ''}
                       onChange={(e) => setFilters({ ...filters, location: e.target.value || undefined })}
-                      className="pl-8 h-9"
+                      className="h-9 rounded-xl border-[rgba(101,76,57,0.14)] bg-[rgba(255,252,248,0.92)] pl-8 text-[var(--atlas-ink)] placeholder:text-[var(--atlas-muted)]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-stone-500">Birth Year Range</label>
+                  <label className="text-xs font-medium text-[var(--atlas-muted)]">Birth Year Range</label>
                   <div className="flex gap-2">
                     <Input
                       placeholder="From"
                       value={filters.yearFrom || ''}
                       onChange={(e) => setFilters({ ...filters, yearFrom: e.target.value || undefined })}
-                      className="h-9"
+                      className="h-9 rounded-xl border-[rgba(101,76,57,0.14)] bg-[rgba(255,252,248,0.92)] text-[var(--atlas-ink)] placeholder:text-[var(--atlas-muted)]"
                       type="number"
                       min="1000"
                       max="2100"
@@ -303,7 +317,7 @@ export function SearchCommand() {
                       placeholder="To"
                       value={filters.yearTo || ''}
                       onChange={(e) => setFilters({ ...filters, yearTo: e.target.value || undefined })}
-                      className="h-9"
+                      className="h-9 rounded-xl border-[rgba(101,76,57,0.14)] bg-[rgba(255,252,248,0.92)] text-[var(--atlas-ink)] placeholder:text-[var(--atlas-muted)]"
                       type="number"
                       min="1000"
                       max="2100"
@@ -317,26 +331,26 @@ export function SearchCommand() {
 
         {/* Active filters display */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap gap-1.5 px-3 py-2 border-b border-stone-200 dark:border-stone-800">
+          <div className="flex flex-wrap gap-1.5 border-b border-[rgba(101,76,57,0.12)] px-3 py-2">
             {filters.location && (
-              <Badge variant="secondary" className="gap-1 pr-1">
+              <Badge variant="secondary" className="gap-1 rounded-full bg-[rgba(203,153,79,0.1)] pr-1 text-[var(--atlas-copy)]">
                 <MapPin className="h-3 w-3" />
                 {filters.location}
                 <button
                   onClick={() => setFilters({ ...filters, location: undefined })}
-                  className="ml-1 hover:bg-stone-300 dark:hover:bg-stone-600 rounded-full p-0.5"
+                  className="ml-1 rounded-full p-0.5 hover:bg-[rgba(203,153,79,0.16)]"
                 >
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
             )}
             {(filters.yearFrom || filters.yearTo) && (
-              <Badge variant="secondary" className="gap-1 pr-1">
+              <Badge variant="secondary" className="gap-1 rounded-full bg-[rgba(203,153,79,0.1)] pr-1 text-[var(--atlas-copy)]">
                 <Calendar className="h-3 w-3" />
                 {filters.yearFrom || '?'} – {filters.yearTo || '?'}
                 <button
                   onClick={() => setFilters({ ...filters, yearFrom: undefined, yearTo: undefined })}
-                  className="ml-1 hover:bg-stone-300 dark:hover:bg-stone-600 rounded-full p-0.5"
+                  className="ml-1 rounded-full p-0.5 hover:bg-[rgba(203,153,79,0.16)]"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -359,8 +373,8 @@ export function SearchCommand() {
           {!loading && query.length < 2 && !hasActiveFilters && (
             <CommandEmpty>
               <div className="text-center py-4">
-                <p className="text-sm text-stone-500">Type to search or use filters</p>
-                <p className="text-xs text-stone-400 mt-1">
+                <p className="text-sm text-[var(--atlas-copy)]">Type to search or use filters</p>
+                <p className="mt-1 text-xs text-[var(--atlas-muted)]">
                   Try: &quot;born in Scotland&quot; or filter by year range
                 </p>
               </div>
@@ -373,16 +387,16 @@ export function SearchCommand() {
                 <CommandItem
                   key={result.id}
                   onSelect={() => handleSelect(result)}
-                  className="flex items-start gap-3"
+                  className="flex items-start gap-3 rounded-xl"
                 >
                   {getIcon(result.type)}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium">{result.title}</p>
                     {result.subtitle && (
-                      <p className="text-xs text-stone-400 dark:text-stone-500 truncate">{result.subtitle}</p>
+                      <p className="truncate text-xs text-[var(--atlas-muted)]">{result.subtitle}</p>
                     )}
                     {result.location && (
-                      <p className="text-xs text-stone-400 dark:text-stone-500 flex items-center gap-1 mt-0.5">
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--atlas-muted)]">
                         <MapPin className="h-3 w-3" />
                         {result.location}
                       </p>
@@ -406,7 +420,7 @@ export function SearchCommand() {
                     <div>
                       <p>{result.title}</p>
                       {result.subtitle && (
-                        <p className="text-xs text-stone-400 dark:text-stone-500">{result.subtitle}</p>
+                        <p className="text-xs text-[var(--atlas-muted)]">{result.subtitle}</p>
                       )}
                     </div>
                   </CommandItem>
@@ -428,7 +442,7 @@ export function SearchCommand() {
                     <div>
                       <p>{result.title}</p>
                       {result.subtitle && (
-                        <p className="text-xs text-stone-400 dark:text-stone-500">{result.subtitle}</p>
+                        <p className="text-xs text-[var(--atlas-muted)]">{result.subtitle}</p>
                       )}
                     </div>
                   </CommandItem>

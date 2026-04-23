@@ -17,7 +17,8 @@ export function Mihimihi() {
       const timer = setTimeout(() => setIsVisible(true), 1000)
       return () => clearTimeout(timer)
     }
-    setHasBeenShown(true)
+    const timer = setTimeout(() => setHasBeenShown(true), 0)
+    return () => clearTimeout(timer)
   }, [])
 
   const handleAcknowledge = () => {
@@ -106,7 +107,7 @@ export function Mihimihi() {
 
                   <div className="border-l-2 border-accent/30 pl-4 py-2 bg-muted/30 rounded-r-lg">
                     <p className="text-xs text-muted-foreground italic">
-                      "Ko au ko koe, ko koe ko au"<br />
+                      &ldquo;Ko au ko koe, ko koe ko au&rdquo;<br />
                       <span className="text-xs">I am you, and you are me. We are all connected</span>
                     </p>
                   </div>
@@ -120,7 +121,7 @@ export function Mihimihi() {
                       onClick={handleAcknowledge}
                       className="bg-accent hover:bg-accent/90 text-accent-foreground px-8 py-2 rounded-full transition-spring"
                     >
-                      Kia ora, let's begin
+                      Kia ora, let&apos;s begin
                     </Button>
                   </div>
                 </motion.div>

@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1.5 [&>svg]:pointer-events-none transition-all duration-200 overflow-hidden",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1.5 overflow-hidden whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium transition-[background-color,border-color,color] duration-200 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {
         default:
-          "border-transparent bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 [a&]:hover:bg-stone-800 dark:[a&]:hover:bg-stone-200",
+          "border-transparent bg-[var(--atlas-ink)] text-[var(--atlas-paper-strong)] [a&]:hover:bg-[var(--atlas-teal)]",
         secondary:
-          "border-transparent bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 [a&]:hover:bg-stone-200 dark:[a&]:hover:bg-stone-700",
+          "border-transparent bg-[var(--atlas-accent-soft)] text-[var(--atlas-accent)] [a&]:hover:bg-[rgba(203,153,79,0.18)]",
         destructive:
-          "border-transparent bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 [a&]:hover:bg-red-200 dark:[a&]:hover:bg-red-900/50",
+          "border-transparent bg-[rgba(181,86,59,0.14)] text-[var(--atlas-coral)] [a&]:hover:bg-[rgba(181,86,59,0.2)]",
         outline:
-          "border-stone-200 text-stone-600 dark:border-stone-700 dark:text-stone-400 [a&]:hover:bg-stone-50 dark:[a&]:hover:bg-stone-800",
+          "border-[var(--atlas-line)] text-[var(--atlas-copy)] [a&]:hover:bg-[rgba(255,249,238,0.74)]",
         success:
-          "border-transparent bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+          "border-transparent bg-[rgba(91,119,83,0.15)] text-[var(--atlas-jade)]",
         warning:
-          "border-transparent bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+          "border-transparent bg-[rgba(194,139,63,0.17)] text-[var(--atlas-ochre)]",
       },
     },
     defaultVariants: {

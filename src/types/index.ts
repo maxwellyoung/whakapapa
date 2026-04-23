@@ -250,6 +250,7 @@ export interface Memory {
   content: string
   memory_type: MemoryType
   media_url: string | null
+  media_path: string | null
   media_type: string | null
   duration_seconds: number | null
   contributed_by_name: string | null

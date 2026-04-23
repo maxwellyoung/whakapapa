@@ -5,20 +5,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-all duration-200 ease-out active:scale-[0.98] active:transition-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-stone-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-stone-950 select-none",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium transition-[background-color,border-color,color,box-shadow,transform] duration-[180ms] ease-out active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--atlas-accent)]/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--atlas-paper)] select-none",
   {
     variants: {
       variant: {
-        default: "bg-stone-900 text-stone-50 shadow-sm shadow-stone-900/10 hover:bg-stone-800 dark:bg-stone-100 dark:text-stone-900 dark:shadow-stone-100/5 dark:hover:bg-stone-200",
+        default: "border border-[rgba(69,45,31,0.18)] bg-[var(--atlas-ink)] text-[#fff8ec] shadow-[0_10px_24px_rgba(69,45,31,0.16)] hover:bg-[#3b281e]",
         destructive:
-          "bg-red-500 text-white shadow-sm shadow-red-500/20 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700",
+          "border border-[#8f3f34]/20 bg-[#9f4638] text-white shadow-[0_10px_24px_rgba(159,70,56,0.18)] hover:bg-[#87382e]",
         outline:
-          "border border-stone-200 bg-white/80 text-stone-700 shadow-sm shadow-stone-900/5 hover:bg-stone-50 hover:text-stone-900 dark:border-stone-700 dark:bg-stone-900/80 dark:text-stone-300 dark:hover:bg-stone-800 dark:hover:text-stone-100",
+          "border border-[var(--atlas-line)] bg-[rgba(255,250,244,0.76)] text-[var(--atlas-copy)] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] hover:border-[var(--atlas-line-strong)] hover:bg-[rgba(255,248,239,0.96)] hover:text-[var(--atlas-ink)]",
         secondary:
-          "bg-stone-100 text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-300 dark:hover:bg-stone-700",
+          "border border-[rgba(203,153,79,0.18)] bg-[var(--atlas-accent-soft)] text-[var(--atlas-accent)] hover:bg-[rgba(203,153,79,0.2)]",
         ghost:
-          "text-stone-600 hover:bg-stone-100 hover:text-stone-900 dark:text-stone-400 dark:hover:bg-stone-800/50 dark:hover:text-stone-100",
-        link: "text-stone-700 underline-offset-4 hover:underline dark:text-stone-300",
+          "text-[var(--atlas-copy)] hover:bg-[rgba(203,153,79,0.08)] hover:text-[var(--atlas-ink)]",
+        link: "text-[var(--atlas-accent)] underline-offset-4 hover:underline",
       },
       size: {
         default: "h-10 px-4 py-2 has-[>svg]:px-3",

@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     url: "https://whakapapa.vercel.app",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image.svg",
         width: 1200,
         height: 630,
         alt: "Whakapapa - AI-powered family knowledge base",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Whakapapa - Family Knowledge Base",
     description: "Preserve your family's stories with AI. An elegant genealogy app for capturing the memories, relationships, and wisdom that make us who we are.",
-    images: ["/og-image.png"],
+    images: ["/og-image.svg"],
     creator: "@maxtheyoung",
   },
   robots: {
